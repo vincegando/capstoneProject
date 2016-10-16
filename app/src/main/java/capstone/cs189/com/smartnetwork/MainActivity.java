@@ -1,6 +1,8 @@
 package capstone.cs189.com.smartnetwork;
 
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.view.View;
@@ -13,15 +15,23 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.shinelw.library.ColorArcProgressBar;
 
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private ColorArcProgressBar colorArcProgressBar;
+    private Button button;
+    private TextView text_max, text_min, text_retry, text_drops, text_errors;
+    Handler handler = new Handler();
+    Runnable runnable;
+    int i;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,15 +50,44 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         colorArcProgressBar = (ColorArcProgressBar) findViewById(R.id.speed_meter);
-        colorArcProgressBar.setCurrentValues(100);
+        text_max = (TextView) findViewById(R.id.text_max);
+        text_min = (TextView) findViewById(R.id.text_min);
+        text_drops = (TextView) findViewById(R.id.text_drops);
+        text_retry = (TextView) findViewById(R.id.text_retry);
+        text_errors = (TextView) findViewById(R.id.text_errors);
 
-        Button button = (Button) findViewById(R.id.button);
+
+        button = (Button) findViewById(R.id.button);
+        i = 0;
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Random r = new Random();
-                int randomNum = r.nextInt(100-1) + 1;
-                colorArcProgressBar.setCurrentValues(randomNum);
+                if(button.getText().equals("Test")) {
+                    button.setText("Stop");
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            runnable = this;
+                            Random r = new Random();
+                            int randomActual = r.nextInt(80-5) + 5;
+                            int randomMax = r.nextInt(100-80) + 80;
+                            colorArcProgressBar.setCurrentValues(randomActual);
+                            colorArcProgressBar.setMaxValues(randomMax);
+                            text_max.setText("PHY rate max: " + randomMax + " mbps");
+                            text_min.setText("PHY rate min: " + 0 + " mbps");
+                            text_retry.setText("Number of retrys: " + 1);
+                            text_drops.setText("Number of drops: " + 0);
+                            text_errors.setText("Errors: " + i);
+                            i++;
+                            handler.postDelayed(this, 2000);
+                        }
+                    }, 2000);
+                }
+                else {
+                    handler.removeCallbacks(runnable);
+                    button.setText("Test");
+                }
+
             }
         });
     }
