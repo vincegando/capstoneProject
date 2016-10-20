@@ -5,4 +5,6 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+    <string name="title_activity_heat_map">Wifi Heat Map</string>
+    <string name="title_activity_speed_test">Speed Test</string>
 </resources>

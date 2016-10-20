@@ -1,5 +1,6 @@
 package capstone.cs189.com.smartnetwork;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -17,6 +18,7 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.MapFragment;
 import com.shinelw.library.ColorArcProgressBar;
 
 import java.util.Random;
@@ -79,9 +81,9 @@ public class MainActivity extends AppCompatActivity
                             text_drops.setText("Number of drops: " + 0);
                             text_errors.setText("Errors: " + i);
                             i++;
-                            handler.postDelayed(this, 2000);
+                            handler.postDelayed(this, 1000);
                         }
-                    }, 2000);
+                    }, 1000);
                 }
                 else {
                     handler.removeCallbacks(runnable);
@@ -130,13 +132,14 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
+        if (id == R.id.nav_test) {
             // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        } else if (id == R.id.nav_map) {
+            Intent intent = new Intent(MainActivity.this, HeatMapActivity.class);
+            startActivity(intent);
+        } else if (id == R.id.nav_devices) {
 
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
+        } else if (id == R.id.nav_settings) {
 
         } else if (id == R.id.nav_share) {
 
