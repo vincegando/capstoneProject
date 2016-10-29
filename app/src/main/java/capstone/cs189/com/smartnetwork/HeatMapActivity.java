@@ -26,6 +26,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.github.clans.fab.FloatingActionMenu;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -51,8 +52,11 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
     private double lat;
     private double lon;
     private Location mLocation;
-    private Marker marker;
-
+    private Marker marker, pin;
+    private FloatingActionMenu floatingActionMenu;
+    private com.github.clans.fab.FloatingActionButton fab1, fab2, fab3, fab4;
+    private boolean isPlacingPin = false;
+    private boolean isPlacingRouter = false;
 
     protected static final String TAG = "HEAT MAP ACTIVITY";
 
@@ -86,6 +90,42 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
             buildGoogleApiClient();
             mGoogleApiClient.connect();
         }
+        floatingActionMenu = (FloatingActionMenu) findViewById(R.id.fab_menu);
+        fab1 = (com.github.clans.fab.FloatingActionButton) findViewById(R.id.menu_item1);
+        fab2 = (com.github.clans.fab.FloatingActionButton) findViewById(R.id.menu_item2);
+        fab3 = (com.github.clans.fab.FloatingActionButton) findViewById(R.id.menu_item3);
+        fab4 = (com.github.clans.fab.FloatingActionButton) findViewById(R.id.menu_item4);
+
+        fab1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                floatingActionMenu.close(true);
+                if (isPlacingPin) {
+                    isPlacingPin = false;
+                    isPlacingRouter = true;
+                }
+                else {
+                    isPlacingRouter = true;
+                }
+                Toast.makeText(getApplicationContext(), "Tap to place pin at router location", Toast.LENGTH_SHORT).show();
+            }
+        });
+        fab2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                floatingActionMenu.close(true);
+                if (isPlacingRouter) {
+                    isPlacingRouter = false;
+                    isPlacingPin = true;
+                }
+                else {
+                    isPlacingPin = true;
+                }
+                Toast.makeText(getApplicationContext(), "Tap to place pin at test location", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
     }
 
     @Override
@@ -150,6 +190,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
     public void onMapReady(GoogleMap googleMap) {
        // Log.d("MAP READY", "MAP IS READY");
         mMap = googleMap;
+        mMap.getUiSettings().setMapToolbarEnabled(false);
     }
 
     @Override
@@ -193,9 +234,11 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
 
     @Override
     public void onLocationChanged(Location location) {
-        marker.remove();
+        if (marker != null) {
+            marker.remove();
+        }
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        marker = mMap.addMarker(new MarkerOptions().position(latLng).title("Current location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+        marker = mMap.addMarker(new MarkerOptions().position(latLng).title("My location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
     }
 
     @Override
@@ -225,13 +268,31 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
 
     @Override
     public void onConnected(Bundle connectionHint) {
-        Log.d("FFFFFFFFFFFFFFFFFFFFFF", "Connected to GoogleApiClient");
+        Log.d(TAG, "Connected to GoogleApiClient");
         mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         lat = mLocation.getLatitude();
         lon = mLocation.getLongitude();
-        Log.d("FFFFFFFFFFFFFFFFF", "lat :" + mLocation.getLatitude() + " lon: " + mLocation.getLongitude());
+        Log.d(TAG, "lat :" + mLocation.getLatitude() + " lon: " + mLocation.getLongitude());
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lon), 19.6f));
-        marker = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title("Current location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+        marker = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title("My location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                if (isPlacingPin) {
+                    MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("Pin at lat: " + latLng.latitude + " lon: " + latLng.longitude).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                    Log.d(TAG, "New pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
+                    pin = mMap.addMarker(markerOptions);
+                    isPlacingPin = false;
+                }
+                else if (isPlacingRouter) {
+                    MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("My Router").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
+                    Log.d(TAG, "New pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
+                    pin = mMap.addMarker(markerOptions);
+                    isPlacingRouter = false;
+                }
+            }
+        });
     }
 
     @Override
