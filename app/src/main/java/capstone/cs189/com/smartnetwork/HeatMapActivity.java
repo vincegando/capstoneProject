@@ -37,11 +37,18 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.maps.model.TileOverlay;
+import com.google.android.gms.maps.model.TileOverlayOptions;
+import com.google.maps.android.heatmaps.HeatmapTileProvider;
+import com.google.maps.android.heatmaps.WeightedLatLng;
+
+import java.util.ArrayList;
 
 public class HeatMapActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
@@ -57,6 +64,12 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
     private com.github.clans.fab.FloatingActionButton fab1, fab2, fab3, fab4;
     private boolean isPlacingPin = false;
     private boolean isPlacingRouter = false;
+    private HeatmapTileProvider provider;
+    private TileOverlay overlay;
+    private ArrayList<WeightedLatLng> list;
+    private boolean isScaled = true , isScaledFar = true, isScaledFarther = true, isScaledAway = true;
+
+    private float zoomLevel = 20.0f;
 
     protected static final String TAG = "HEAT MAP ACTIVITY";
 
@@ -122,6 +135,21 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                     isPlacingPin = true;
                 }
                 Toast.makeText(getApplicationContext(), "Tap to place pin at test location", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        fab3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                floatingActionMenu.close(true);
+            }
+        });
+
+        fab4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                floatingActionMenu.close(true);
+                addHeatMap();
             }
         });
 
@@ -284,13 +312,87 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                     Log.d(TAG, "New pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
                     pin = mMap.addMarker(markerOptions);
                     isPlacingPin = false;
-                }
-                else if (isPlacingRouter) {
+                } else if (isPlacingRouter) {
                     MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("My Router").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
                     Log.d(TAG, "New pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
                     pin = mMap.addMarker(markerOptions);
                     isPlacingRouter = false;
                 }
+            }
+        });
+
+        mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+            @Override
+            public void onCameraChange(CameraPosition cameraPosition) {
+                Log.d("ZOOM", "Zoom: " + cameraPosition.zoom);
+                float f = cameraPosition.zoom;
+                if (f == 21.0f && isScaled) {
+                    if (provider == null) {
+
+                    } else {
+                        isScaled = false;
+                        isScaledFar = true;
+                        isScaledAway = true;
+                        isScaledFarther = true;
+                        provider.setRadius(130);
+                        //overlay.clearTileCache();
+                        overlay.remove();
+                        overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
+
+                    }
+
+                }
+                else if (f <21.0f && f > 20.5f && isScaledFar) {
+                    if (provider == null) {
+
+                    } else {
+                        isScaled = true;
+                        isScaledFar = true;
+                        isScaledFarther = true;
+                        isScaledAway = true;
+                        provider.setRadius(70);
+                        overlay.clearTileCache();
+                    }
+                }
+                else if (f <= 20.0f && f >= 19.0f && isScaledFarther) {
+                    if (provider == null) {
+
+                    } else {
+                        isScaledFarther = true;
+                        isScaled = true;
+                        isScaledFar = true;
+                        isScaledAway = true;
+                        provider.setRadius(30);
+                        overlay.clearTileCache();
+                    }
+                }
+                else if (f < 19.0f && f > 16.0f && isScaledAway) {
+                    if (provider == null) {
+
+                    } else {
+                        isScaledAway = false;
+                        isScaledFarther = true;
+                        isScaled = true;
+                        isScaledFar = true;
+                        provider.setRadius(20);
+                        overlay.clearTileCache();
+                    }
+                }
+
+                /*if (cameraPosition.zoom < zoomLevel) {
+                    if (provider == null) {
+
+                    } else {
+                        overlay.remove();
+                        provider.setRadius(50);
+                        overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
+                    }
+                }
+                else {
+                    overlay.remove();
+                    provider.setRadius(100);
+                    overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
+                }*/
             }
         });
     }
@@ -324,6 +426,28 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
     @Override
     public void onStatusChanged(String provider, int status, Bundle bundle) {
 
+    }
+
+    private void addHeatMap() {
+        list = new ArrayList<>();
+        list.add(new WeightedLatLng(new LatLng(34.414742005466145, -119.85553208738565), 0.3));
+       list.add(new WeightedLatLng(new LatLng(34.414742005466145, -119.8556376993656), 0.2));
+        list.add(new WeightedLatLng(new LatLng(34.41466511282376, -119.85563702881335), 0.8));
+        list.add(new WeightedLatLng(new LatLng(34.41464215565424, -119.85556226223709), 0.9));
+        list.add(new WeightedLatLng(new LatLng(34.41470106982359, -119.85552404075861), 0.8));
+        list.add(new WeightedLatLng(new LatLng(34.414693878424856, -119.85558740794657), 0.5));
+        list.add(new WeightedLatLng(new LatLng(34.41473564384734, -119.85557265579702), 0.2));
+        list.add(new WeightedLatLng(new LatLng(34.414703835746025, -119.85563535243273), 0.4));
+        list.add(new WeightedLatLng(new LatLng(34.41464796409531, -119.85560383647679), 0.7));
+        list.add(new WeightedLatLng(new LatLng(34.414672580817296, -119.85554683953524), 0.8));
+        list.add(new WeightedLatLng(new LatLng(34.41465653845998, -119.85555287450552), 0.8));
+        list.add(new WeightedLatLng(new LatLng(34.414737579992234, -119.85561087727548), 0.2));
+        list.add(new WeightedLatLng(new LatLng(34.41471766535677, -119.8556024953723), 0.3));
+        list.add(new WeightedLatLng(new LatLng(34.414709920775024, -119.85555790364742), 0.5));
+
+        provider = new HeatmapTileProvider.Builder().weightedData(list).radius(50).opacity(0.5).build();
+        provider.setRadius(30);
+        overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
     }
 
 }
