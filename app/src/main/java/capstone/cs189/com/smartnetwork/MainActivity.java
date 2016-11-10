@@ -2,11 +2,7 @@ package capstone.cs189.com.smartnetwork;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -15,15 +11,22 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.google.android.gms.maps.MapFragment;
 import com.shinelw.library.ColorArcProgressBar;
 
+import org.apache.commons.io.IOUtils;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -133,6 +136,7 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_test) {
+            execute_iperf();
             // Handle the camera action
         } else if (id == R.id.nav_map) {
             Intent intent = new Intent(MainActivity.this, HeatMapActivity.class);
@@ -151,4 +155,81 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    private String execute_iperf() {
+
+        String appFileDirectory = getFilesDir().getPath();
+        String executableFilePath = appFileDirectory + "/iperf";
+        File execFile = new File(executableFilePath);
+
+        InputStream in;
+        OutputStream out;
+        try {
+            in = getAssets().open("iperf");
+            out = new FileOutputStream(execFile);
+            IOUtils.copy(in, out);
+            out.flush();
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+
+        execFile.setExecutable(true);
+        Process process;
+        String total = "", errTotal = "";
+        try {
+            process = Runtime.getRuntime().exec(executableFilePath + " -h");
+
+            BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+            BufferedReader stdError = new BufferedReader(new
+                    InputStreamReader(process.getErrorStream()));
+
+
+            String line;
+            while ((line = r.readLine()) != null) {
+                total = total + line + "\n";
+            }
+
+            String errLine;
+            while ((errLine = stdError.readLine()) != null) {
+                errTotal = errTotal + errLine + "\n";
+            }
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return total;
+    }
+
+
+//    private void copyAssets(String filename) {
+//
+//        AssetManager assetManager = getAssets();
+//
+//        InputStream in = null;
+//        OutputStream out = null;
+//        Log.d(TAG, "Attempting to copy this file: " + filename); // + " to: " +       assetCopyDestination);
+//
+//        try {
+//            in = assetManager.open(filename);
+//            Log.d(TAG, "outDir: " + appFileDirectory);
+//            File outFile = new File(appFileDirectory, filename);
+//            out = new FileOutputStream(outFile);
+//            copyFile(in, out);
+//            in.close();
+//            in = null;
+//            out.flush();
+//            out.close();
+//            out = null;
+//        } catch(IOException e) {
+//            Log.e(TAG, "Failed to copy asset file: " + filename, e);
+//        }
+//
+//        Log.d(TAG, "Copy success: " + filename);
+//    }
 }
