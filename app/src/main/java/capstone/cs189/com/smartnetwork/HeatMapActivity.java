@@ -4,14 +4,11 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -29,8 +26,6 @@ import android.widget.Toast;
 import com.github.clans.fab.FloatingActionMenu;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -38,11 +33,9 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
@@ -66,7 +59,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
     private boolean isPlacingRouter = false;
     private HeatmapTileProvider provider;
     private TileOverlay overlay;
-    private ArrayList<WeightedLatLng> list;
+    private ArrayList<WeightedLatLng> list, mDynamicList;
     private boolean isScaled = true , isScaledFar = true, isScaledFarther = true, isScaledAway = true;
 
     private float zoomLevel = 20.0f;
@@ -113,12 +106,18 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
             @Override
             public void onClick(View v) {
                 floatingActionMenu.close(true);
-                if (isPlacingPin) {
+              /*  if (isPlacingPin) {
                     isPlacingPin = false;
                     isPlacingRouter = true;
                 }
                 else {
                     isPlacingRouter = true;
+                }*/
+                if (!isPlacingRouter) {
+                    isPlacingRouter = true;
+                }
+                else {
+                   // isPlacingRouter = false;
                 }
                 Toast.makeText(getApplicationContext(), "Tap to place pin at router location", Toast.LENGTH_SHORT).show();
             }
@@ -152,6 +151,8 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                 addHeatMap();
             }
         });
+
+        mDynamicList = new ArrayList<>();
 
 
     }
@@ -194,12 +195,13 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_test) {
-            Intent intent = new Intent(HeatMapActivity.this, MainActivity.class);
+        if (id == R.id.nav_home) {
+            Intent intent = new Intent(HeatMapActivity.this, HomeActivity.class);
+            startActivity(intent);
+        } else if (id == R.id.nav_speed_test) {
+            Intent intent = new Intent(HeatMapActivity.this, SpeedTestActivity.class);
             startActivity(intent);
         } else if (id == R.id.nav_map) {
-
-        } else if (id == R.id.nav_devices) {
 
         } else if (id == R.id.nav_settings) {
 
@@ -308,10 +310,13 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
             @Override
             public void onMapClick(LatLng latLng) {
                 if (isPlacingPin) {
+
                     MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("Pin at lat: " + latLng.latitude + " lon: " + latLng.longitude).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
                     Log.d(TAG, "New pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
                     pin = mMap.addMarker(markerOptions);
                     isPlacingPin = false;
+                    mDynamicList.add(new WeightedLatLng(new LatLng(latLng.latitude, latLng.longitude), 0.3));
+                    addHeatMap2();
                 } else if (isPlacingRouter) {
                     MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("My Router").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
                     Log.d(TAG, "New pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
@@ -341,8 +346,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
 
                     }
 
-                }
-                else if (f <21.0f && f > 20.5f && isScaledFar) {
+                } else if (f < 21.0f && f > 20.5f && isScaledFar) {
                     if (provider == null) {
 
                     } else {
@@ -353,8 +357,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                         provider.setRadius(70);
                         overlay.clearTileCache();
                     }
-                }
-                else if (f <= 20.0f && f >= 19.0f && isScaledFarther) {
+                } else if (f <= 20.0f && f >= 19.0f && isScaledFarther) {
                     if (provider == null) {
 
                     } else {
@@ -365,8 +368,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                         provider.setRadius(30);
                         overlay.clearTileCache();
                     }
-                }
-                else if (f < 19.0f && f > 16.0f && isScaledAway) {
+                } else if (f < 19.0f && f > 16.0f && isScaledAway) {
                     if (provider == null) {
 
                     } else {
@@ -447,6 +449,16 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
 
         provider = new HeatmapTileProvider.Builder().weightedData(list).radius(50).opacity(0.5).build();
         provider.setRadius(30);
+        overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
+    }
+
+    private void addHeatMap2() {
+
+        if (overlay != null) {
+            overlay.remove();
+        }
+        provider = new HeatmapTileProvider.Builder().weightedData(mDynamicList).radius(50).opacity(0.5).build();
+        provider.setRadius(150);
         overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
     }
 
