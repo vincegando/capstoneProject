@@ -82,4 +82,47 @@
 
     </com.github.clans.fab.FloatingActionMenu>
 
+    <com.github.clans.fab.FloatingActionMenu
+        android:id="@+id/fab_menu_start_test"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="10dp"
+        android:visibility="gone"
+        fab:menu_buttonSpacing="2dp"
+        fab:menu_colorNormal="@color/red"
+        fab:menu_colorPressed="@color/redDarker"
+        fab:menu_colorRipple="#99FFFFFF"
+        fab:menu_icon="@mipmap/ic_my_location_white_24dp"
+
+        >
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/fab_menu_item_test_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/ic_check_white_24dp"
+            fab:fab_size="mini"
+            app:fab_colorNormal="@color/red"
+            app:fab_colorPressed="@color/redDarker"
+            app:fab_colorRipple="#99FFFFFF"
+            fab:fab_label="Begin Test" />
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/fab_menu_item_test_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/ic_close_white_24dp"
+            fab:fab_size="mini"
+            app:fab_colorNormal="@color/red"
+            app:fab_colorPressed="@color/redDarker"
+            app:fab_colorRipple="#99FFFFFF"
+            fab:fab_label="Cancel Pin" />
+
+
+    </com.github.clans.fab.FloatingActionMenu>
+
 </RelativeLayout>

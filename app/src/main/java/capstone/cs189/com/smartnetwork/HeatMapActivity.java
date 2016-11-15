@@ -9,6 +9,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -21,8 +22,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.animation.LinearInterpolator;
 import android.widget.Toast;
 
+import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -53,14 +56,15 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
     private double lon;
     private Location mLocation;
     private Marker marker, pin;
-    private FloatingActionMenu floatingActionMenu;
-    private com.github.clans.fab.FloatingActionButton fab1, fab2, fab3, fab4;
+    private FloatingActionMenu floatingActionMenu, fab_test_menu;
+    private com.github.clans.fab.FloatingActionButton fab1, fab2, fab3, fab4, fab_test_1, fab_test_2;
     private boolean isPlacingPin = false;
     private boolean isPlacingRouter = false;
     private HeatmapTileProvider provider;
     private TileOverlay overlay;
     private ArrayList<WeightedLatLng> list, mDynamicList;
     private boolean isScaled = true , isScaledFar = true, isScaledFarther = true, isScaledAway = true;
+    private LatLng currentPinLocation;
 
     private float zoomLevel = 20.0f;
 
@@ -96,6 +100,35 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
             buildGoogleApiClient();
             mGoogleApiClient.connect();
         }
+        fab_test_menu = (FloatingActionMenu) findViewById(R.id.fab_menu_start_test);
+        fab_test_1 = (FloatingActionButton) findViewById(R.id.fab_menu_item_test_1);
+        fab_test_2 = (FloatingActionButton) findViewById(R.id.fab_menu_item_test_2);
+
+        fab_test_1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDynamicList.add(new WeightedLatLng(currentPinLocation, 0.3));
+                addHeatMap2();
+                fab_test_menu.close(true);
+                //fab_test_menu.setVisibility(View.GONE);
+                fab_test_menu.animate().translationY(floatingActionMenu.getHeight()).setInterpolator(new LinearInterpolator()).start();
+                floatingActionMenu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
+            }
+        });
+
+        fab_test_2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (pin != null) {
+                    pin.remove();
+                }
+                fab_test_menu.close(true);
+                //fab_test_menu.setVisibility(View.GONE);
+                fab_test_menu.animate().translationY(floatingActionMenu.getHeight()).setInterpolator(new LinearInterpolator()).start();
+                floatingActionMenu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
+            }
+        });
+
         floatingActionMenu = (FloatingActionMenu) findViewById(R.id.fab_menu);
         fab1 = (com.github.clans.fab.FloatingActionButton) findViewById(R.id.menu_item1);
         fab2 = (com.github.clans.fab.FloatingActionButton) findViewById(R.id.menu_item2);
@@ -133,6 +166,10 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                 else {
                     isPlacingPin = true;
                 }
+//                CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams)floatingActionMenu.getLayoutParams();
+  //              int fab_margin_bottom = layoutParams.bottomMargin;
+                floatingActionMenu.animate().translationY(floatingActionMenu.getHeight()).setInterpolator(new LinearInterpolator()).start();
+                fab_test_menu.animate().translationY(floatingActionMenu.getHeight()).setInterpolator(new LinearInterpolator()).start();
                 Toast.makeText(getApplicationContext(), "Tap to place pin at test location", Toast.LENGTH_SHORT).show();
             }
         });
@@ -220,6 +257,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
     public void onMapReady(GoogleMap googleMap) {
        // Log.d("MAP READY", "MAP IS READY");
         mMap = googleMap;
+        mMap.getUiSettings().setCompassEnabled(false);
         mMap.getUiSettings().setMapToolbarEnabled(false);
     }
 
@@ -310,13 +348,13 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
             @Override
             public void onMapClick(LatLng latLng) {
                 if (isPlacingPin) {
-
+                    currentPinLocation = new LatLng(latLng.latitude, latLng.longitude);
                     MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("Pin at lat: " + latLng.latitude + " lon: " + latLng.longitude).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
                     Log.d(TAG, "New pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
                     pin = mMap.addMarker(markerOptions);
                     isPlacingPin = false;
-                    mDynamicList.add(new WeightedLatLng(new LatLng(latLng.latitude, latLng.longitude), 0.3));
-                    addHeatMap2();
+                    fab_test_menu.setVisibility(View.VISIBLE);
+                    fab_test_menu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
                 } else if (isPlacingRouter) {
                     MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("My Router").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
                     Log.d(TAG, "New pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
