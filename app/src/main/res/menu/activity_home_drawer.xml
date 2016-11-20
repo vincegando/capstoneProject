@@ -6,6 +6,7 @@
             android:id="@+id/nav_home"
             android:icon="@mipmap/ic_home_black_24dp"
             android:title="Home"
+            android:checked="true"
             />
         <item
             android:id="@+id/nav_speed_test"
@@ -14,7 +15,6 @@
         <item
             android:id="@+id/nav_map"
             android:icon="@mipmap/ic_map_black_24dp"
-            android:checked="true"
             android:title="Wifi Heat Map" />
         <item
             android:id="@+id/nav_settings"
