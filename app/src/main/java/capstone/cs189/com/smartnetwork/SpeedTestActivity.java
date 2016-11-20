@@ -2,10 +2,7 @@ package capstone.cs189.com.smartnetwork;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -18,14 +15,11 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.google.android.gms.maps.MapFragment;
 import com.shinelw.library.ColorArcProgressBar;
 
 import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity
+public class SpeedTestActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private ColorArcProgressBar colorArcProgressBar;
@@ -38,7 +32,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_speed_test);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -107,7 +101,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+        getMenuInflater().inflate(R.menu.speed_test, menu);
         return true;
     }
 
@@ -132,21 +126,19 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_test) {
-            // Handle the camera action
-        } else if (id == R.id.nav_map) {
-            Intent intent = new Intent(MainActivity.this, HeatMapActivity.class);
+        if (id == R.id.nav_home) {
+            Intent intent = new Intent(SpeedTestActivity.this, HomeActivity.class);
             startActivity(intent);
-        } else if (id == R.id.nav_devices) {
+        } else if (id == R.id.nav_speed_test) {
 
+        } else if (id == R.id.nav_map) {
+            Intent intent = new Intent(SpeedTestActivity.this, HeatMapActivity.class);
+            startActivity(intent);
         } else if (id == R.id.nav_settings) {
 
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_send) {
-            Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-            startActivity(intent);
-
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

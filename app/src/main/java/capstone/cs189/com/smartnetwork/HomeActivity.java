@@ -1,11 +1,11 @@
 package capstone.cs189.com.smartnetwork;
 
 import android.content.Intent;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.CountDownTimer;
-import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.text.format.Formatter;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -15,30 +15,19 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
 import android.widget.TextView;
 
-import com.google.android.gms.maps.MapFragment;
-import com.shinelw.library.ColorArcProgressBar;
+import java.net.NetworkInterface;
+import java.util.Collections;
+import java.util.List;
 
-import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
-
-public class MainActivity extends AppCompatActivity
+public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
-
-    private ColorArcProgressBar colorArcProgressBar;
-    private Button button;
-    private TextView text_max, text_min, text_retry, text_drops, text_errors;
-    Handler handler = new Handler();
-    Runnable runnable;
-    int i;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_home);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -51,47 +40,35 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        colorArcProgressBar = (ColorArcProgressBar) findViewById(R.id.speed_meter);
-        text_max = (TextView) findViewById(R.id.text_max);
-        text_min = (TextView) findViewById(R.id.text_min);
-        text_drops = (TextView) findViewById(R.id.text_drops);
-        text_retry = (TextView) findViewById(R.id.text_retry);
-        text_errors = (TextView) findViewById(R.id.text_errors);
+        TextView text_MAC = (TextView) findViewById(R.id.router_mac);
+        text_MAC.setText("MAC Address: " + getMacAddr());
 
+    }
 
-        button = (Button) findViewById(R.id.button);
-        i = 0;
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(button.getText().equals("Test")) {
-                    button.setText("Stop");
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            runnable = this;
-                            Random r = new Random();
-                            int randomActual = r.nextInt(80-5) + 5;
-                            int randomMax = r.nextInt(100-80) + 80;
-                            colorArcProgressBar.setCurrentValues(randomActual);
-                            colorArcProgressBar.setMaxValues(randomMax);
-                            text_max.setText("PHY rate max: " + randomMax + " mbps");
-                            text_min.setText("PHY rate min: " + 0 + " mbps");
-                            text_retry.setText("Number of retrys: " + 1);
-                            text_drops.setText("Number of drops: " + 0);
-                            text_errors.setText("Errors: " + i);
-                            i++;
-                            handler.postDelayed(this, 1000);
-                        }
-                    }, 1000);
-                }
-                else {
-                    handler.removeCallbacks(runnable);
-                    button.setText("Test");
+    public static String getMacAddr() {
+        try {
+            List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface nif : all) {
+                if (!nif.getName().equalsIgnoreCase("wlan0")) continue;
+
+                byte[] macBytes = nif.getHardwareAddress();
+                if (macBytes == null) {
+                    return "";
                 }
 
+                StringBuilder res1 = new StringBuilder();
+                for (byte b : macBytes) {
+                    res1.append(Integer.toHexString(b & 0xFF) + ":");
+                }
+
+                if (res1.length() > 0) {
+                    res1.deleteCharAt(res1.length() - 1);
+                }
+                return res1.toString();
             }
-        });
+        } catch (Exception ex) {
+        }
+        return "Not Available";
     }
 
     @Override
@@ -107,7 +84,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+        getMenuInflater().inflate(R.menu.home, menu);
         return true;
     }
 
@@ -132,20 +109,18 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_test) {
-            // Handle the camera action
-        } else if (id == R.id.nav_map) {
-            Intent intent = new Intent(MainActivity.this, HeatMapActivity.class);
+        if (id == R.id.nav_home) {
+        } else if (id == R.id.nav_speed_test) {
+            Intent intent = new Intent(HomeActivity.this, SpeedTestActivity.class);
             startActivity(intent);
-        } else if (id == R.id.nav_devices) {
-
+        } else if (id == R.id.nav_map) {
+            Intent intent = new Intent(HomeActivity.this, HeatMapActivity.class);
+            startActivity(intent);
         } else if (id == R.id.nav_settings) {
 
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_send) {
-            Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-            startActivity(intent);
 
         }
 
