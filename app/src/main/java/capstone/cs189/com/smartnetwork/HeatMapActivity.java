@@ -302,15 +302,15 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
 
     @Override
     public void onLocationChanged(Location location) {
-<<<<<<< HEAD
+
         if (marker != null) {
             marker.remove();
         }
-=======
+
 		if(marker != null) {
 			marker.remove();
 		}
->>>>>>> master
+
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         marker = mMap.addMarker(new MarkerOptions().position(latLng).title("My location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
     }
