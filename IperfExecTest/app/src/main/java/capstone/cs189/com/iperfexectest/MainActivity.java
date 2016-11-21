@@ -23,7 +23,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Formatter;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -124,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 String[] commands = inputCommands.getText().toString().split(" ");
                 List<String> commandList = new ArrayList<>(Arrays.asList(commands));
-                if (commandList.get(0).equals((String)"iperf")) {
+                if (commandList.get(0).equals((String) "src/main/temp/iperf")) {
                     commandList.remove(0);
                 }
 
@@ -138,13 +137,13 @@ public class MainActivity extends AppCompatActivity {
                     output.append(buffer, 0, read);
                     publishProgress(output.toString());
                     output.delete(0, output.length());
-                    Log.d("ERROR WITH IPERF TEST", "while loop issue");
+                    tv.setText("ERROR WITH IPERF TEST"+"while loop issue");
                 }
                 reader.close();
                 p.destroy();
             }
             catch (IOException e) {
-                Log.d("ERROR WITH IPERF TEST", "IO execption thrown");
+                tv.setText("ERROR WITH IPERF TEST"+ "IO execption thrown");
                 e.printStackTrace();
             }
             return null;
