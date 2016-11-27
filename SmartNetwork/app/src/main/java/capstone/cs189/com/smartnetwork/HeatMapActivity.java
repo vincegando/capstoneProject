@@ -107,9 +107,9 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         fab_test_1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                fab_test_menu.close(true);
                 mDynamicList.add(new WeightedLatLng(currentPinLocation, 0.3));
                 addHeatMap2();
-                fab_test_menu.close(true);
                 //fab_test_menu.setVisibility(View.GONE);
                 fab_test_menu.animate().translationY(floatingActionMenu.getHeight()).setInterpolator(new LinearInterpolator()).start();
                 floatingActionMenu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
@@ -119,10 +119,10 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         fab_test_2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                fab_test_menu.close(true);
                 if (pin != null) {
                     pin.remove();
                 }
-                fab_test_menu.close(true);
                 //fab_test_menu.setVisibility(View.GONE);
                 fab_test_menu.animate().translationY(floatingActionMenu.getHeight()).setInterpolator(new LinearInterpolator()).start();
                 floatingActionMenu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
@@ -139,18 +139,11 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
             @Override
             public void onClick(View v) {
                 floatingActionMenu.close(true);
-              /*  if (isPlacingPin) {
-                    isPlacingPin = false;
-                    isPlacingRouter = true;
-                }
-                else {
-                    isPlacingRouter = true;
-                }*/
                 if (!isPlacingRouter) {
                     isPlacingRouter = true;
                 }
                 else {
-                   // isPlacingRouter = false;
+
                 }
                 Toast.makeText(getApplicationContext(), "Tap to place pin at router location", Toast.LENGTH_SHORT).show();
             }
@@ -166,8 +159,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                 else {
                     isPlacingPin = true;
                 }
-//                CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams)floatingActionMenu.getLayoutParams();
-  //              int fab_margin_bottom = layoutParams.bottomMargin;
+
                 floatingActionMenu.animate().translationY(floatingActionMenu.getHeight()).setInterpolator(new LinearInterpolator()).start();
                 fab_test_menu.animate().translationY(floatingActionMenu.getHeight()).setInterpolator(new LinearInterpolator()).start();
                 Toast.makeText(getApplicationContext(), "Tap to place pin at test location", Toast.LENGTH_SHORT).show();
@@ -185,7 +177,8 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
             @Override
             public void onClick(View v) {
                 floatingActionMenu.close(true);
-                addHeatMap();
+                //addHeatMap();
+                Toast.makeText(getApplicationContext(), "Heat Map successfully saved!", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -244,10 +237,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
 
         } else if (id == R.id.nav_share) {
 
-        } else if (id == R.id.nav_send) {
-
         }
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -302,15 +292,9 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
 
     @Override
     public void onLocationChanged(Location location) {
-
         if (marker != null) {
             marker.remove();
         }
-
-		if(marker != null) {
-			marker.remove();
-		}
-
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         marker = mMap.addMarker(new MarkerOptions().position(latLng).title("My location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
     }
