@@ -1,6 +1,7 @@
 package capstone.cs189.com.smartnetwork;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -8,7 +9,9 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -69,6 +72,8 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
     private float zoomLevel = 20.0f;
 
     protected static final String TAG = "HEAT MAP ACTIVITY";
+
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -177,8 +182,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
             @Override
             public void onClick(View v) {
                 floatingActionMenu.close(true);
-                //addHeatMap();
-                Toast.makeText(getApplicationContext(), "Heat Map successfully saved!", Toast.LENGTH_SHORT).show();
+                new SaveHeatMapAsync().execute();
             }
         });
 
@@ -213,6 +217,10 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            return true;
+        }
+        else if (id == R.id.action_load_heat_map) {
+            new LoadHeatMapAsync().execute();
             return true;
         }
 
@@ -337,6 +345,8 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
+                floatingActionMenu.close(true);
+
                 if (isPlacingPin) {
                     currentPinLocation = new LatLng(latLng.latitude, latLng.longitude);
                     MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("Pin at lat: " + latLng.latitude + " lon: " + latLng.longitude).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
@@ -488,6 +498,74 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         provider = new HeatmapTileProvider.Builder().weightedData(mDynamicList).radius(50).opacity(0.5).build();
         provider.setRadius(150);
         overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
+    }
+
+
+    private class SaveHeatMapAsync extends AsyncTask<String, String, String> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog =  new ProgressDialog(HeatMapActivity.this);
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            progressDialog.setMessage("Saving Heat Map...");
+            progressDialog.setCancelable(true);
+            progressDialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... urls) {
+
+            for(int i = 0; i < 3; i++) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String unused) {
+            progressDialog.dismiss();
+            Toast.makeText(getApplicationContext(), "Heat Map successfully saved!", Toast.LENGTH_SHORT).show();
+
+        }
+    }
+
+    private class LoadHeatMapAsync extends AsyncTask<String, String, String> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog =  new ProgressDialog(HeatMapActivity.this);
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            progressDialog.setMessage("Loading Heat Map...");
+            progressDialog.setCancelable(true);
+            progressDialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... urls) {
+
+            for(int i = 0; i < 3; i++) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String unused) {
+            progressDialog.dismiss();
+            Toast.makeText(getApplicationContext(), "Heat Map successfully loaded!", Toast.LENGTH_SHORT).show();
+            addHeatMap();
+        }
     }
 
 }
