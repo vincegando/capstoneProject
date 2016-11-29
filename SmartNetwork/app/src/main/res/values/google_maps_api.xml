@@ -4,10 +4,10 @@
 
     To get one, follow this link, follow the directions and press "Create" at the end:
 
-    https://console.developers.google.com/flows/enableapi?apiid=maps_android_backend&keyType=CLIENT_SIDE_ANDROID&r=AD:38:72:AE:E2:C0:88:05:82:0D:69:F7:48:E4:28:B2:17:4E:01:74%3Bedu.ucsb.cs.cs190i.brandonwicka.geofencing
+    https://console.developers.google.com/flows/enableapi?apiid=maps_android_backend&keyType=CLIENT_SIDE_ANDROID&r=AD:38:72:AE:E2:C0:88:05:82:0D:69:F7:48:E4:28:B2:17:4E:01:74%3Bcapstone.cs189.com.smartnetwork
 
     You can also add your credentials to an existing key, using this line:
-    AD:38:72:AE:E2:C0:88:05:82:0D:69:F7:48:E4:28:B2:17:4E:01:74;edu.ucsb.cs.cs190i.brandonwicka.geofencing
+    AD:38:72:AE:E2:C0:88:05:82:0D:69:F7:48:E4:28:B2:17:4E:01:74;capstone.cs189.com.smartnetwork
 
     Alternatively, follow the directions here:
     https://developers.google.com/maps/documentation/android/start#get-key

@@ -65,19 +65,20 @@ public class SpeedTestActivity extends AppCompatActivity
                         public void run() {
                             runnable = this;
                             Random r = new Random();
-                            int randomActual = r.nextInt(80-5) + 5;
+                            int randomActual = r.nextInt(55-45) + 45;
                             int randomMax = r.nextInt(100-80) + 80;
+
                             colorArcProgressBar.setCurrentValues(randomActual);
-                            colorArcProgressBar.setMaxValues(randomMax);
+                            colorArcProgressBar.setMaxValues(85);
                             text_max.setText("PHY rate max: " + randomMax + " mbps");
                             text_min.setText("PHY rate min: " + 0 + " mbps");
                             text_retry.setText("Number of retrys: " + 1);
                             text_drops.setText("Number of drops: " + 0);
                             text_errors.setText("Errors: " + i);
                             i++;
-                            handler.postDelayed(this, 1000);
+                            handler.postDelayed(this, 500);
                         }
-                    }, 1000);
+                    }, 500);
                 }
                 else {
                     handler.removeCallbacks(runnable);

@@ -1,6 +1,7 @@
 package capstone.cs189.com.smartnetwork;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -8,7 +9,9 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -25,6 +28,12 @@ import android.view.MenuItem;
 import android.view.animation.LinearInterpolator;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 import com.google.android.gms.common.ConnectionResult;
@@ -43,6 +52,9 @@ import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
@@ -65,10 +77,13 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
     private ArrayList<WeightedLatLng> list, mDynamicList;
     private boolean isScaled = true , isScaledFar = true, isScaledFarther = true, isScaledAway = true;
     private LatLng currentPinLocation;
+    private LatLng routerLoaction;
 
     private float zoomLevel = 20.0f;
 
     protected static final String TAG = "HEAT MAP ACTIVITY";
+
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -177,8 +192,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
             @Override
             public void onClick(View v) {
                 floatingActionMenu.close(true);
-                //addHeatMap();
-                Toast.makeText(getApplicationContext(), "Heat Map successfully saved!", Toast.LENGTH_SHORT).show();
+                new SaveHeatMapAsync().execute();
             }
         });
 
@@ -213,6 +227,10 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            return true;
+        }
+        else if (id == R.id.action_load_heat_map) {
+            new LoadHeatMapAsync().execute();
             return true;
         }
 
@@ -337,6 +355,8 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
+                floatingActionMenu.close(true);
+
                 if (isPlacingPin) {
                     currentPinLocation = new LatLng(latLng.latitude, latLng.longitude);
                     MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("Pin at lat: " + latLng.latitude + " lon: " + latLng.longitude).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
@@ -486,8 +506,185 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
             overlay.remove();
         }
         provider = new HeatmapTileProvider.Builder().weightedData(mDynamicList).radius(50).opacity(0.5).build();
-        provider.setRadius(150);
+        provider.setRadius(200);
         overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
+        MarkerOptions markerOptions = new MarkerOptions().position(routerLoaction).title("My Router").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
+       // Log.d(TAG, "New pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
+        pin = mMap.addMarker(markerOptions);
     }
+
+
+    private class SaveHeatMapAsync extends AsyncTask<String, String, String> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog =  new ProgressDialog(HeatMapActivity.this);
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            progressDialog.setMessage("Saving Heat Map...");
+            progressDialog.setCancelable(true);
+            progressDialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... urls) {
+
+            for(int i = 0; i < 3; i++) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String unused) {
+            progressDialog.dismiss();
+            Toast.makeText(getApplicationContext(), "Heat Map successfully saved!", Toast.LENGTH_SHORT).show();
+
+        }
+    }
+
+    private class LoadHeatMapAsync extends AsyncTask<String, String, String> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog =  new ProgressDialog(HeatMapActivity.this);
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            progressDialog.setMessage("Loading Heat Map...");
+            progressDialog.setCancelable(true);
+            progressDialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... urls) {
+            getHeatMapPointsFromBackend();
+            for(int i = 0; i < 3; i++) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            //HeatMapService();
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String unused) {
+            progressDialog.dismiss();
+            Toast.makeText(getApplicationContext(), "Heat Map successfully loaded!", Toast.LENGTH_SHORT).show();
+            addHeatMap2();
+        }
+    }
+
+    private void HeatMapService() {
+        RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
+        String url = "http://cs1.smartrg.link:3000/heatmaps/1.json";
+        try {
+            StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            try {
+                                JSONObject json = new JSONObject(response);
+                                String s = json.optString("created_at");
+                                Log.d("JSON IS HERE: ", s);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    },
+                    new Response.ErrorListener() {
+                       @Override
+                        public void onErrorResponse(VolleyError error) {
+                           error.printStackTrace();
+                       }
+                    });
+            requestQueue.add(stringRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void getHeatMapPointsFromBackend() {
+        RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
+        //String url = "http://cs1.smartrg.link:3000/heatmap_points/1.json";
+        final ArrayList<WeightedLatLng> testPointList = new ArrayList<>();
+        for (int i = 5; i < 20; i++) {
+            String url = "http://cs1.smartrg.link:3000/heatmap_points/" + (i+1) + ".json";
+            try {
+                StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                try {
+                                    JSONObject json = new JSONObject(response);
+                                    String lat = json.optString("latitude");
+                                    String lon = json.optString("longitude");
+                                    String intensity = json.optString("jitter");
+                                    double latitude = Double.parseDouble(lat);
+                                    double longitude = Double.parseDouble(lon);
+                                    double intens = Double.parseDouble(intensity);
+                                    //Log.d("FFFFFFFFFFFFFFFFFF", "LATITUDE: " + lat);
+                                    //Log.d("FFFFFFFFFFFFFFFFFF", "LONGITUDE: " + lon);
+
+                                    mDynamicList.add(new WeightedLatLng(new LatLng(latitude, longitude), intens));
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                error.printStackTrace();
+                            }
+                        });
+                requestQueue.add(stringRequest);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        String url2 = "http://cs1.smartrg.link:3000/routers/2.json";
+        try {
+            StringRequest stringRequest = new StringRequest(Request.Method.GET, url2,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            try {
+                                JSONObject json = new JSONObject(response);
+                                String lat = json.optString("latitude");
+                                String lon = json.optString("longitude");
+                                double latitude = Double.parseDouble(lat);
+                                double longitude = Double.parseDouble(lon);
+                                routerLoaction = new LatLng(latitude, longitude);
+                                //Log.d("FFFFFFFFFFFFFFFFFF", "LATITUDE: " + lat);
+                                //Log.d("FFFFFFFFFFFFFFFFFF", "LONGITUDE: " + lon);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            error.printStackTrace();
+                        }
+                    });
+            requestQueue.add(stringRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+
 
 }
