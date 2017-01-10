@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="capstone.cs189.com.smartnetwork.HeatMapActivity"
+    tools:context=".Activities.HeatMapActivity"
     tools:showIn="@layout/app_bar_heat_map">
 
 
@@ -17,7 +17,7 @@
         android:name="com.google.android.gms.maps.MapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="capstone.cs189.com.smartnetwork.HeatMapActivity" />
+        tools:context=".Activities.HeatMapActivity" />
 
     <com.github.clans.fab.FloatingActionMenu
         android:id="@+id/fab_menu"

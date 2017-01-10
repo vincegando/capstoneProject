@@ -29,7 +29,7 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".HomeActivity"
+            android:name=".Activities.HomeActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -39,11 +39,11 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".HeatMapActivity"
+            android:name=".Activities.HeatMapActivity"
             android:label="@string/title_activity_heat_map"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".SpeedTestActivity"
+            android:name=".Activities.SpeedTestActivity"
             android:label="Speed Test"
             android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
