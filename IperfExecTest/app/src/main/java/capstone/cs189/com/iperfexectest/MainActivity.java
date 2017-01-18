@@ -41,16 +41,15 @@ public class MainActivity extends AppCompatActivity {
         WifiManager wifiManager = (WifiManager)getSystemService(WIFI_SERVICE);
         if (wifiManager != null) {
             if (wifiManager.getConnectionInfo() != null) {
-                textView.append("Your Ip address is: " + android.text.format.Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress()));
+                textView.setText("Your Ip address is: " + android.text.format.Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress()));
             }
             else {
-                textView.append("Error");
+                textView.setText("Error");
             }
         }
         else {
-            textView.append("error");
+            textView.setText("error");
         }
-
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -62,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
     public void initIperf() {
         InputStream inputStream;
         try {
@@ -72,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
             return;
         }
-
         try {
             new FileInputStream("/data/data/capstone.cs189.com.iperfexectest/iperf");
         }
@@ -137,13 +134,11 @@ public class MainActivity extends AppCompatActivity {
                     output.append(buffer, 0, read);
                     publishProgress(output.toString());
                     output.delete(0, output.length());
-                    tv.setText("ERROR WITH IPERF TEST"+"while loop issue");
                 }
                 reader.close();
                 p.destroy();
             }
             catch (IOException e) {
-                tv.setText("ERROR WITH IPERF TEST"+ "IO execption thrown");
                 e.printStackTrace();
             }
             return null;
@@ -181,8 +176,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
-
-
     }
 
 }
