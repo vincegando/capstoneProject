@@ -67,15 +67,20 @@ public class MainActivity extends AppCompatActivity {
             inputStream = getResources().getAssets().open("iperf");
         }
         catch (IOException e) {
+            Log.d("Init Iperf error!", "Error occurred while accessing system resources, please reboot and try again");
             e.printStackTrace();
             return;
         }
         try {
+            //Checks if the file already exists, if not copies it.
             new FileInputStream("/data/data/capstone.cs189.com.iperfexectest/iperf");
+            //new FileInputStream("/mnt/sdcard/iperf3");
         }
         catch (FileNotFoundException f) {
             try {
+                Log.d("FFFFFFFFFFFFFFFFFFFF", "HERE");
                 OutputStream out = new FileOutputStream("/data/data/capstone.cs189.com.iperfexectest/iperf", false);
+                //OutputStream out = new FileOutputStream("/mnt/sdcard/iperf3", false);
                 byte[] buf = new byte[1024];
                 int len;
                 while ((len = inputStream.read(buf)) > 0) {
