@@ -1,6 +1,9 @@
 package capstone.cs189.com.smartnetwork.Activities;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -29,6 +32,7 @@ public class SpeedTestActivity extends AppCompatActivity
     private TextView text_max, text_min, text_retry, text_drops, text_errors;
     Handler handler = new Handler();
     Runnable runnable;
+    WifiManager wifiManager;
     int i;
 
     @Override
@@ -57,6 +61,9 @@ public class SpeedTestActivity extends AppCompatActivity
 
         button = (Button) findViewById(R.id.button);
         i = 0;
+        wifiManager = (WifiManager)getSystemService(WIFI_SERVICE);
+
+
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -66,14 +73,22 @@ public class SpeedTestActivity extends AppCompatActivity
                         @Override
                         public void run() {
                             runnable = this;
-                            Random r = new Random();
-                            int randomActual = r.nextInt(55-45) + 45;
-                            int randomMax = r.nextInt(100-80) + 80;
+                            //Random r = new Random();
+                            //int randomActual = r.nextInt(55-45) + 45;
+                            //int randomMax = r.nextInt(100-80) + 80;
 
-                            colorArcProgressBar.setCurrentValues(randomActual);
-                            colorArcProgressBar.setMaxValues(85);
-                            text_max.setText("PHY rate max: " + randomMax + " mbps");
-                            text_min.setText("PHY rate min: " + 0 + " mbps");
+                            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                            Integer speed = 0;
+                            if (wifiInfo != null) {
+                                speed = wifiInfo.getLinkSpeed();
+                            }
+
+//                          colorArcProgressBar.setCurrentValues(randomActual);
+                            colorArcProgressBar.setCurrentValues(speed);
+
+                            colorArcProgressBar.setMaxValues(150);
+                            //text_max.setText("PHY rate max: " + randomMax + " mbps");
+                            text_min.setText("Speed: " + speed + "mbps");
                             text_retry.setText("Number of retrys: " + 1);
                             text_drops.setText("Number of drops: " + 0);
                             text_errors.setText("Errors: " + i);
