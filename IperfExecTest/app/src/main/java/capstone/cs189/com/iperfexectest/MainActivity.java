@@ -23,6 +23,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Formatter;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -44,12 +45,13 @@ public class MainActivity extends AppCompatActivity {
                 textView.setText("Your Ip address is: " + android.text.format.Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress()));
             }
             else {
-                textView.setText("Error");
+                textView.append("Error");
             }
         }
         else {
-            textView.setText("error");
+            textView.append("error");
         }
+
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -61,26 +63,24 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+
     public void initIperf() {
         InputStream inputStream;
         try {
-            inputStream = getResources().getAssets().open("iperf");
+            inputStream = getResources().getAssets().open("iperf3");
         }
         catch (IOException e) {
-            Log.d("Init Iperf error!", "Error occurred while accessing system resources, please reboot and try again");
+            Log.d("FFFFFFFFFFFFFF", "Failed to find assets iperf resource!");
             e.printStackTrace();
             return;
         }
+
         try {
-            //Checks if the file already exists, if not copies it.
-            new FileInputStream("/data/data/capstone.cs189.com.iperfexectest/iperf");
-            //new FileInputStream("/mnt/sdcard/iperf3");
+            new FileInputStream("/data/data/capstone.cs189.com.iperfexectest/iperf3");
         }
         catch (FileNotFoundException f) {
             try {
-                Log.d("FFFFFFFFFFFFFFFFFFFF", "HERE");
-                OutputStream out = new FileOutputStream("/data/data/capstone.cs189.com.iperfexectest/iperf", false);
-                //OutputStream out = new FileOutputStream("/mnt/sdcard/iperf3", false);
+                OutputStream out = new FileOutputStream("/data/data/capstone.cs189.com.iperfexectest/iperf3", false);
                 byte[] buf = new byte[1024];
                 int len;
                 while ((len = inputStream.read(buf)) > 0) {
@@ -88,20 +88,23 @@ public class MainActivity extends AppCompatActivity {
                 }
                 inputStream.close();
                 out.close();
-                Process process =  Runtime.getRuntime().exec("/system/bin/chmod 744 /data/data/capstone.cs189.com.iperfexectest/iperf");
+                Process process =  Runtime.getRuntime().exec("/system/bin/chmod 744 /data/data/capstone.cs189.com.iperfexectest/iperf3");
                 process.waitFor();
             } catch (IOException e) {
+                Log.d("FFFFFFFFFFFFFFF", "FILE NOT FOUND EXCEPTION");
                 e.printStackTrace();
                 return;
             }
             catch (InterruptedException e) {
                 e.printStackTrace();
+                Log.d("FFFFFFFFFFFFFFF", "INTERRUPTED EXCEPTION");
                 return;
             }
             iperfTask = new IperfTask();
             iperfTask.execute();
             return;
         }
+
         iperfTask = new IperfTask();
         iperfTask.execute();
         return;
@@ -125,11 +128,11 @@ public class MainActivity extends AppCompatActivity {
             try {
                 String[] commands = inputCommands.getText().toString().split(" ");
                 List<String> commandList = new ArrayList<>(Arrays.asList(commands));
-                if (commandList.get(0).equals((String) "src/main/temp/iperf")) {
+                if (commandList.get(0).equals((String)"iperf")) {
                     commandList.remove(0);
                 }
 
-                commandList.add(0, "/data/data/capstone.cs189.com.iperfexectest/iperf");
+                commandList.add(0, "/data/data/capstone.cs189.com.iperfexectest/iperf3");
                 p = new ProcessBuilder().command(commandList).redirectErrorStream(true).start();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
                 int read;
@@ -137,13 +140,16 @@ public class MainActivity extends AppCompatActivity {
                 StringBuffer output = new StringBuffer();
                 while((read = reader.read(buffer)) > 0) {
                     output.append(buffer, 0, read);
+                    Log.d("FDDDDDDDDDDDDDDDD", "output: " + output.toString());
                     publishProgress(output.toString());
                     output.delete(0, output.length());
+
                 }
                 reader.close();
                 p.destroy();
             }
             catch (IOException e) {
+                Log.d("ERROR WITH IPERF TEST", "IO execption thrown");
                 e.printStackTrace();
             }
             return null;
@@ -181,6 +187,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+
+
     }
 
 }
