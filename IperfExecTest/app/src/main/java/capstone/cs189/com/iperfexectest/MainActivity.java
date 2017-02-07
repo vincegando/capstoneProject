@@ -140,7 +140,15 @@ public class MainActivity extends AppCompatActivity {
                 StringBuffer output = new StringBuffer();
                 while((read = reader.read(buffer)) > 0) {
                     output.append(buffer, 0, read);
-                    Log.d("FDDDDDDDDDDDDDDDD", "output: " + output.toString());
+                    //Log.d("FDDDDDDDDDDDDDDDD", "output: " + output.toString());
+
+                    //parse
+                    String[] s = output.toString().split(" ");
+                    List<String> outList = new ArrayList<>(Arrays.asList(s));
+                    if (outList.get(outList.size()-1).equals((String)"Mbits/sec")) {
+                        Log.i("PARSE", outList.get(outList.size()-2));
+                    }
+
                     publishProgress(output.toString());
                     output.delete(0, output.length());
 
