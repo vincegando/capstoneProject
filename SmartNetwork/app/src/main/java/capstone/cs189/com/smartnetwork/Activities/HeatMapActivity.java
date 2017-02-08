@@ -1,4 +1,4 @@
-package capstone.cs189.com.smartnetwork;
+package capstone.cs189.com.smartnetwork.Activities;
 
 import android.Manifest;
 import android.app.ProgressDialog;

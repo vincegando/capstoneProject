@@ -1,4 +1,4 @@
-package capstone.cs189.com.smartnetwork;
+package capstone.cs189.com.smartnetwork.Activities;
 
 import android.content.Context;
 import android.content.Intent;
@@ -146,6 +146,7 @@ public class SpeedTestActivity extends AppCompatActivity
         if (wifiInfo != null) {
             ipAddress = android.text.format.Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
             Log.d("INIT_IPERF", "This is your IP: " + ipAddress);
+            ipAddress = "192.168.0.2";
         }
         else {
             Toast.makeText(getApplicationContext(), "Test failed! Verify your device is connected to wifi and try again", Toast.LENGTH_SHORT).show();
@@ -154,7 +155,7 @@ public class SpeedTestActivity extends AppCompatActivity
         // copy the iperf executable into device's internal storage
         InputStream inputStream;
         try {
-            inputStream = getResources().getAssets().open("iperf3");
+            inputStream = getResources().getAssets().open("iperf9");
         }
         catch (IOException e) {
             Log.d("Init Iperf error!", "Error occurred while accessing system resources, no iperf3 found in assets");
@@ -163,11 +164,11 @@ public class SpeedTestActivity extends AppCompatActivity
         }
         try {
             //Checks if the file already exists, if not copies it.
-            new FileInputStream("/data/data/capstone.cs189.com.smartnetwork/iperf3");
+            new FileInputStream("/data/data/capstone.cs189.com.smartnetwork/iperf9");
         }
         catch (FileNotFoundException f) {
             try {
-                OutputStream out = new FileOutputStream("/data/data/capstone.cs189.com.smartnetwork/iperf3", false);
+                OutputStream out = new FileOutputStream("/data/data/capstone.cs189.com.smartnetwork/iperf9", false);
                 byte[] buf = new byte[1024];
                 int len;
                 while ((len = inputStream.read(buf)) > 0) {
@@ -175,7 +176,7 @@ public class SpeedTestActivity extends AppCompatActivity
                 }
                 inputStream.close();
                 out.close();
-                Process process =  Runtime.getRuntime().exec("/system/bin/chmod 744 /data/data/capstone.cs189.com.smartnetwork/iperf3");
+                Process process =  Runtime.getRuntime().exec("/system/bin/chmod 744 /data/data/capstone.cs189.com.smartnetwork/iperf9");
                 process.waitFor();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -204,6 +205,7 @@ public class SpeedTestActivity extends AppCompatActivity
         protected void onPreExecute() {
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
             max = wifiInfo.getLinkSpeed();
+            Log.d("ON_PRE_EXECUTE", "link speed: " + max);
             button.setText("STOP");
         }
 
@@ -211,18 +213,14 @@ public class SpeedTestActivity extends AppCompatActivity
         protected String doInBackground(Void... voids) {
             if (!command.matches("(iperf3 )?((-[s,-server])|(-[c,-client] ([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5]))|(-[c,-client] \\w{1,63})|(-[h,-help]))(( -[f,-format] [bBkKmMgG])|(\\s)|( -[l,-len] \\d{1,5}[KM])|( -[B,-bind] \\w{1,63})|( -[r,-tradeoff])|( -[v,-version])|( -[N,-nodelay])|( -[T,-ttl] \\d{1,8})|( -[U,-single_udp])|( -[d,-dualtest])|( -[w,-window] \\d{1,5}[KM])|( -[n,-num] \\d{1,10}[KM])|( -[p,-port] \\d{1,5})|( -[L,-listenport] \\d{1,5})|( -[t,-time] \\d{1,8})|( -[i,-interval] \\d{1,4})|( -[u,-udp])|( -[b,-bandwidth] \\d{1,20}[bBkKmMgG])|( -[m,-print_mss])|( -[P,-parallel] d{1,2})|( -[M,-mss] d{1,20}))*"))
             {
-                Log.d("FFFFFFFFFFFFFFFFF", "Error! Invalid syntax for iperf3 command!");
+                Log.d("DO_IN_BACKGROUND", "Error! Invalid syntax for iperf3 command!");
                 publishProgress("Error: invalid syntax \n\n");
                 return null;
             }
             try {
                 String[] commands = command.split(" ");
                 List<String> commandList = new ArrayList<>(Arrays.asList(commands));
-               // if (commandList.get(0).equals((String) "src/main/temp/iperf")) {
-                //    commandList.remove(0);
-               // }
-
-                commandList.add(0, "/data/data/capstone.cs189.com.smartnetwork/iperf3");
+                commandList.add(0, "/data/data/capstone.cs189.com.smartnetwork/iperf9");
                 p = new ProcessBuilder().command(commandList).redirectErrorStream(true).start();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
                 int read;
@@ -238,7 +236,7 @@ public class SpeedTestActivity extends AppCompatActivity
             }
             catch (IOException e) {
                 e.printStackTrace();
-                Log.d("IPERFTASK_ERROR", "Error! Failed retrieving iperf3 results");
+                Log.d("DO_IN_BACKGROUND", "Error! Failed retrieving iperf3 results");
             }
             return null;
         }
@@ -247,19 +245,31 @@ public class SpeedTestActivity extends AppCompatActivity
         public void onProgressUpdate(String... strings) {
             String output = strings[0];
             Log.d("ON_PROGRESS_UPDATE", "Iperf output: " + output);
-            String[] s = output.split(" ");
+            String[] s = output.split("\\s+");
             ArrayList<String> outList = new ArrayList<>(Arrays.asList(s));
+            for (int i = 0; i < outList.size(); i++) {
+               // Log.d("ON_PROGRESS_UPDATE", "list: " + outList.get(i));
+                if (outList.get(i).equals("-")) {
+                    if (outList.get(i + 1).equals("-")) {
+                        Log.d("ON_PROGRESS_UPDATE", "Should be end of iperf, should exit");
+                        return;
+                    }
+                }
+            }
+
             if (outList.contains("sec")) {
-                int speed = Integer.getInteger(outList.get(outList.size() - 2));
+                String st = outList.get(outList.size() - 2);
+                Log.d("ON_PROGRESS_UPDATE", "string speed value: " + st);
+                if (st.equals("iperf")) {
+                    return;
+                }
+                int speed = (int)Double.parseDouble(st);
                 Log.d("ON_PROGRESS_UPDATE", "speed: " + speed + " Mbits/sec" + ", max: " + max);
                 if (speed > max) {
                     max = speed;
                 }
                 colorArcProgressBar.setCurrentValues(speed);
                 colorArcProgressBar.setMaxValues(max);
-            }
-            else {
-                Log.d("ON_PROGRESS_UPDATE", "skipping line, does not contain sec value we need");
             }
         }
 
@@ -275,7 +285,7 @@ public class SpeedTestActivity extends AppCompatActivity
 
                     e.printStackTrace();
                 }
-                Toast.makeText(getApplicationContext(), "iperf3 test has finished", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "test has finished", Toast.LENGTH_SHORT).show();
                 button.setText("TEST");
             }
         }

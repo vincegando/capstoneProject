@@ -1,4 +1,4 @@
-package capstone.cs189.com.smartnetwork;
+package capstone.cs189.com.smartnetwork.Activities;
 
 import android.content.Intent;
 import android.net.wifi.WifiManager;
