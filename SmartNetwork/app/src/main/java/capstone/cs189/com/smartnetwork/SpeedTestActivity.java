@@ -1,4 +1,4 @@
-package capstone.cs189.com.smartnetwork.Activities;
+package capstone.cs189.com.smartnetwork;
 
 import android.content.Context;
 import android.content.Intent;
