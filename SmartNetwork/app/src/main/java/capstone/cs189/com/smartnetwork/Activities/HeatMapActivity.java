@@ -9,6 +9,8 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -56,7 +58,19 @@ import com.google.maps.android.heatmaps.WeightedLatLng;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import capstone.cs189.com.smartnetwork.R;
 
 public class HeatMapActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
@@ -78,6 +92,9 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
     private boolean isScaled = true , isScaledFar = true, isScaledFarther = true, isScaledAway = true;
     private LatLng currentPinLocation;
     private LatLng routerLoaction;
+    private WifiManager wifiManager;
+    private String ipAddress;
+    private IperfTaskHM iperfTask;
 
     private float zoomLevel = 20.0f;
 
@@ -124,6 +141,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
             public void onClick(View v) {
                 fab_test_menu.close(true);
                 mDynamicList.add(new WeightedLatLng(currentPinLocation, 0.3));
+                initIperfHM();
                 addHeatMap2();
                 //fab_test_menu.setVisibility(View.GONE);
                 fab_test_menu.animate().translationY(floatingActionMenu.getHeight()).setInterpolator(new LinearInterpolator()).start();
@@ -284,7 +302,11 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
 
                     LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
                     String provider = locationManager.getBestProvider(new Criteria(), true);
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, HeatMapActivity.this);
+                    try {
+                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, HeatMapActivity.this);
+                    } catch (SecurityException e) {
+                        Log.d("SECURITY1", e.toString());
+                    }
 
                     buildGoogleApiClient();
                     mGoogleApiClient.connect();
@@ -345,7 +367,11 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
     @Override
     public void onConnected(Bundle connectionHint) {
         Log.d(TAG, "Connected to GoogleApiClient");
-        mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        try {
+            mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        } catch (SecurityException e) {
+            Log.d("SECURITY2", e.toString());
+        }
         lat = mLocation.getLatitude();
         lon = mLocation.getLongitude();
         Log.d(TAG, "lat :" + mLocation.getLatitude() + " lon: " + mLocation.getLongitude());
@@ -508,9 +534,9 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         provider = new HeatmapTileProvider.Builder().weightedData(mDynamicList).radius(50).opacity(0.5).build();
         provider.setRadius(200);
         overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
-        MarkerOptions markerOptions = new MarkerOptions().position(routerLoaction).title("My Router").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
+        //MarkerOptions markerOptions = new MarkerOptions().position(routerLoaction).title("My Router").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
        // Log.d(TAG, "New pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
-        pin = mMap.addMarker(markerOptions);
+        //pin = mMap.addMarker(markerOptions);
     }
 
 
@@ -683,6 +709,142 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         }
 
 
+    }
+
+    public void initIperfHM() {
+        wifiManager = (WifiManager)getSystemService(WIFI_SERVICE);
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+
+        // get the device's ip address for use in iperf command
+        if (wifiInfo != null) {
+            ipAddress = android.text.format.Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+            Log.d("INIT_IPERF", "This is your IP: " + ipAddress);
+            ipAddress = "192.168.0.2";
+        }
+        else {
+            Toast.makeText(getApplicationContext(), "Test failed! Verify your device is connected to wifi and try again", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        // copy the iperf executable into device's internal storage
+        InputStream inputStream;
+        try {
+            inputStream = getResources().getAssets().open("iperf9");
+        }
+        catch (IOException e) {
+            Log.d("Init Iperf error!", "Error occurred while accessing system resources, no iperf3 found in assets");
+            e.printStackTrace();
+            return;
+        }
+        try {
+            //Checks if the file already exists, if not copies it.
+            new FileInputStream("/data/data/capstone.cs189.com.smartnetwork/iperf9");
+        }
+        catch (FileNotFoundException f) {
+            try {
+                OutputStream out = new FileOutputStream("/data/data/capstone.cs189.com.smartnetwork/iperf9", false);
+                byte[] buf = new byte[1024];
+                int len;
+                while ((len = inputStream.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
+                inputStream.close();
+                out.close();
+                Process process =  Runtime.getRuntime().exec("/system/bin/chmod 744 /data/data/capstone.cs189.com.smartnetwork/iperf9");
+                process.waitFor();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                return;
+            }
+
+            iperfTask = new IperfTaskHM();
+            iperfTask.execute();
+            return;
+        }
+
+        iperfTask = new IperfTaskHM();
+        iperfTask.execute();
+    }
+
+    public class IperfTaskHM extends AsyncTask<Void, String, String> {
+        Process p = null;
+        String command = "iperf3 -c " + ipAddress;
+        int max;
+
+        @Override
+        protected void onPreExecute() {
+            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+            max = wifiInfo.getLinkSpeed();
+            Log.d("ON_PRE_EXECUTE", "link speed: " + max);
+        }
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            if (!command.matches("(iperf3 )?((-[s,-server])|(-[c,-client] ([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5]))|(-[c,-client] \\w{1,63})|(-[h,-help]))(( -[f,-format] [bBkKmMgG])|(\\s)|( -[l,-len] \\d{1,5}[KM])|( -[B,-bind] \\w{1,63})|( -[r,-tradeoff])|( -[v,-version])|( -[N,-nodelay])|( -[T,-ttl] \\d{1,8})|( -[U,-single_udp])|( -[d,-dualtest])|( -[w,-window] \\d{1,5}[KM])|( -[n,-num] \\d{1,10}[KM])|( -[p,-port] \\d{1,5})|( -[L,-listenport] \\d{1,5})|( -[t,-time] \\d{1,8})|( -[i,-interval] \\d{1,4})|( -[u,-udp])|( -[b,-bandwidth] \\d{1,20}[bBkKmMgG])|( -[m,-print_mss])|( -[P,-parallel] d{1,2})|( -[M,-mss] d{1,20}))*"))
+            {
+                Log.d("DO_IN_BACKGROUND", "Error! Invalid syntax for iperf3 command!");
+                publishProgress("Error: invalid syntax \n\n");
+                return null;
+            }
+            try {
+                String[] commands = command.split(" ");
+                List<String> commandList = new ArrayList<>(Arrays.asList(commands));
+                commandList.add(0, "/data/data/capstone.cs189.com.smartnetwork/iperf9");
+                p = new ProcessBuilder().command(commandList).redirectErrorStream(true).start();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                int read;
+                char[] buffer = new char[4096];
+                StringBuffer output = new StringBuffer();
+                while((read = reader.read(buffer)) > 0) {
+                    output.append(buffer, 0, read);
+                    publishProgress(output.toString());
+                    output.delete(0, output.length());
+                }
+                reader.close();
+                p.destroy();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+                Log.d("DO_IN_BACKGROUND", "Error! Failed retrieving iperf3 results");
+            }
+            return null;
+        }
+
+        @Override
+        public void onProgressUpdate(String... strings) {
+            String output = strings[0];
+            Log.d("ON_PROGRESS_UPDATE", "Iperf output: " + output);
+            String[] s = output.split("\\s+");
+            ArrayList<String> outList = new ArrayList<>(Arrays.asList(s));
+            for (int i = 0; i < outList.size(); i++) {
+                // Log.d("ON_PROGRESS_UPDATE", "list: " + outList.get(i));
+                if (outList.get(i).equals("-")) {
+                    if (outList.get(i + 1).equals("-")) {
+                        Log.d("ON_PROGRESS_UPDATE", "Should be end of iperf, should exit");
+                        return;
+                    }
+                }
+            }
+
+        }
+
+        @Override
+        public void onPostExecute(String result) {
+            //The running process is destroyed and system resources are freed.
+            if (p != null) {
+                p.destroy();
+
+                try {
+                    p.waitFor();
+                } catch (InterruptedException e) {
+
+                    e.printStackTrace();
+                }
+                Toast.makeText(getApplicationContext(), "test has finished", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
 
