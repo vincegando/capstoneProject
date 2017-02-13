@@ -771,6 +771,9 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
     public class IperfTaskHM extends AsyncTask<Void, String, String> {
         Process p = null;
         String command = "iperf3 -c " + ipAddress;
+        String tcp_command = "iperf3 -c " + ipAddress + " -R -J -t 5";
+        String udp_command = "iperf3 -c " + ipAddress + " -u -J -t 5";
+        String[] which_command = {tcp_command, udp_command};
         int max;
 
         @Override
@@ -789,21 +792,23 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                 return null;
             }
             try {
-                String[] commands = command.split(" ");
-                List<String> commandList = new ArrayList<>(Arrays.asList(commands));
-                commandList.add(0, "/data/data/capstone.cs189.com.smartnetwork/iperf9");
-                p = new ProcessBuilder().command(commandList).redirectErrorStream(true).start();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                int read;
-                char[] buffer = new char[4096];
-                StringBuffer output = new StringBuffer();
-                while((read = reader.read(buffer)) > 0) {
-                    output.append(buffer, 0, read);
-                    publishProgress(output.toString());
-                    output.delete(0, output.length());
+                for (String c : which_command) {
+                    String[] commands = c.split(" ");
+                    List<String> commandList = new ArrayList<>(Arrays.asList(commands));
+                    commandList.add(0, "/data/data/capstone.cs189.com.smartnetwork/iperf9");
+                    p = new ProcessBuilder().command(commandList).redirectErrorStream(true).start();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                    int read;
+                    char[] buffer = new char[4096];
+                    StringBuffer output = new StringBuffer();
+                    while ((read = reader.read(buffer)) > 0) {
+                        output.append(buffer, 0, read);
+                        publishProgress(output.toString());
+                        output.delete(0, output.length());
+                    }
+                    reader.close();
+                    p.destroy();
                 }
-                reader.close();
-                p.destroy();
             }
             catch (IOException e) {
                 e.printStackTrace();
