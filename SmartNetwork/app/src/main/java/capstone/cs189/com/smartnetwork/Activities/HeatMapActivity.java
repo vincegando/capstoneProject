@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.util.JsonReader;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -52,6 +53,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
+import com.google.android.gms.nearby.messages.Message;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
 
@@ -776,6 +778,12 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         String[] which_command = {tcp_command, udp_command};
         int max;
 
+        Double downstream = 0.0;
+        Double upstream = 0.0;
+        Integer retransmits = 0;
+        Double jitter = 0.0;
+        Double lost_percent = 0.0;
+
         @Override
         protected void onPreExecute() {
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
@@ -797,6 +805,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                     List<String> commandList = new ArrayList<>(Arrays.asList(commands));
                     commandList.add(0, "/data/data/capstone.cs189.com.smartnetwork/iperf9");
                     p = new ProcessBuilder().command(commandList).redirectErrorStream(true).start();
+                    //JsonReader reader = new JsonReader(new InputStreamReader(p.getInputStream()));
                     BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
                     int read;
                     char[] buffer = new char[4096];
@@ -819,20 +828,40 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
 
         @Override
         public void onProgressUpdate(String... strings) {
+            JSONObject json = new JSONObject();
+            String protocol = null;
             String output = strings[0];
-            Log.d("ON_PROGRESS_UPDATE", "Iperf output: " + output);
-            String[] s = output.split("\\s+");
-            ArrayList<String> outList = new ArrayList<>(Arrays.asList(s));
-            for (int i = 0; i < outList.size(); i++) {
-                // Log.d("ON_PROGRESS_UPDATE", "list: " + outList.get(i));
-                if (outList.get(i).equals("-")) {
-                    if (outList.get(i + 1).equals("-")) {
-                        Log.d("ON_PROGRESS_UPDATE", "Should be end of iperf, should exit");
-                        return;
-                    }
+            //Log.d("FULL_OUTPUT", output);
+            try {
+                json = new JSONObject(output);
+                protocol = json.getJSONObject("start").getJSONObject("test_start").getString("protocol");
+            } catch (org.json.JSONException e) {
+                Log.d("JSONERROR", "Could not convert to JSONObject");
+            }
+            if (protocol.equals("TCP")) {
+                try {
+                    JSONObject end = json.getJSONObject("end");
+                    Double downbits = end.getJSONObject("sum_sent").getDouble("bits_per_second");
+                    Double upbits = end.getJSONObject("sum_received").getDouble("bits_per_second");
+                    retransmits = end.getJSONObject("sum_sent").getInt("retransmits");
+                    downstream = downbits * Math.pow(10, -6);
+                    upstream = upbits * Math.pow(10, -6);
+                } catch (org.json.JSONException e) {
+                    Log.d("JSONERROR", "Could not convert to JSONObject");
                 }
             }
-
+            if (protocol.equals("UDP")) {
+                try {
+                    JSONObject sum = json.getJSONObject("end").getJSONObject("sum");
+                    jitter = sum.getDouble("jitter_ms");
+                    lost_percent = sum.getDouble("lost_percent");
+                } catch (org.json.JSONException e) {
+                    Log.d("JSONERROR", "Could not convert to JSONObject");
+                }
+            }
+            Log.d("ON_PROGRESS_UPDATE", "upstream: " + upstream.toString() + "\ndownstream: " + downstream.toString()
+            + "\nretransmits: " + retransmits.toString() + "\njitter: " + jitter.toString() +
+            "\nlost_percent: " + lost_percent.toString());
         }
 
         @Override
@@ -849,6 +878,21 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                 }
                 Toast.makeText(getApplicationContext(), "test has finished", Toast.LENGTH_SHORT).show();
             }
+            buildHeatmapPoint();
+        }
+
+        public void buildHeatmapPoint() {
+            JSONObject heatmapPoint = new JSONObject();
+            try {
+                heatmapPoint.put("upstream_bps", upstream);
+                heatmapPoint.put("downstream_bps", downstream);
+                heatmapPoint.put("jitter", jitter);
+                heatmapPoint.put("retransmits", retransmits);
+                heatmapPoint.put("lost_percent", lost_percent);
+            } catch (org.json.JSONException e) {
+                Log.d("JSONERROR", "Could not convert to JSONObject");
+            }
+            Log.d("JSON", heatmapPoint.toString());
         }
     }
 
