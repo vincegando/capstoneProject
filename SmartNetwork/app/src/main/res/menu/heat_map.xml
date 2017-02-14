@@ -2,10 +2,15 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/action_save_heat_map"
+        android:icon="@mipmap/ic_save_white_24dp"
+        android:title="save"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_load_heat_map"
-        android:orderInCategory="100"
-        android:title="Load Heat Map"
-        app:showAsAction="never" />
+        android:title="load"
+        android:icon="@mipmap/ic_restore_page_white_24dp"
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"

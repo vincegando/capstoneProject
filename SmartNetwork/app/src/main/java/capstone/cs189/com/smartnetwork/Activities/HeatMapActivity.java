@@ -11,8 +11,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -53,10 +51,14 @@ import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+
+import capstone.cs189.com.smartnetwork.Classes.HeatMap;
+import capstone.cs189.com.smartnetwork.R;
 
 public class HeatMapActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
@@ -68,19 +70,14 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
     private double lon;
     private Location mLocation;
     private Marker marker, pin;
-    private FloatingActionMenu floatingActionMenu, fab_test_menu;
-    private com.github.clans.fab.FloatingActionButton fab1, fab2, fab3, fab4, fab_test_1, fab_test_2;
+    private FloatingActionMenu fab_general_menu, fab_test_menu;
+    private com.github.clans.fab.FloatingActionButton fab1, fab2, fab3, fab_test_1, fab_test_2;
     private boolean isPlacingPin = false;
     private boolean isPlacingRouter = false;
     private HeatmapTileProvider provider;
     private TileOverlay overlay;
-    private ArrayList<WeightedLatLng> list, mDynamicList;
-    private boolean isScaled = true , isScaledFar = true, isScaledFarther = true, isScaledAway = true;
+    private ArrayList<WeightedLatLng> list, mDynamicList, mTestPinList;
     private LatLng currentPinLocation;
-    private LatLng routerLoaction;
-
-    private float zoomLevel = 20.0f;
-
     protected static final String TAG = "HEAT MAP ACTIVITY";
 
     private ProgressDialog progressDialog;
@@ -115,19 +112,20 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
             buildGoogleApiClient();
             mGoogleApiClient.connect();
         }
-        fab_test_menu = (FloatingActionMenu) findViewById(R.id.fab_menu_start_test);
-        fab_test_1 = (FloatingActionButton) findViewById(R.id.fab_menu_item_test_1);
-        fab_test_2 = (FloatingActionButton) findViewById(R.id.fab_menu_item_test_2);
+        fab_test_menu = (FloatingActionMenu) findViewById(R.id.fab_menu_test_pin);
+        fab_test_1 = (FloatingActionButton) findViewById(R.id.menu_item_test_1);
+        fab_test_2 = (FloatingActionButton) findViewById(R.id.menu_item_test_2);
 
         fab_test_1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 fab_test_menu.close(true);
-                mDynamicList.add(new WeightedLatLng(currentPinLocation, 0.3));
-                addHeatMap2();
+               // mDynamicList.add(new WeightedLatLng(currentPinLocation, 0.3));
+                mTestPinList.add(new WeightedLatLng(currentPinLocation, 0.5));
+                addHeatMap3();
                 //fab_test_menu.setVisibility(View.GONE);
-                fab_test_menu.animate().translationY(floatingActionMenu.getHeight()).setInterpolator(new LinearInterpolator()).start();
-                floatingActionMenu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
+                fab_test_menu.animate().translationY(fab_general_menu.getHeight()).setInterpolator(new LinearInterpolator()).start();
+                fab_general_menu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
             }
         });
 
@@ -139,21 +137,21 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                     pin.remove();
                 }
                 //fab_test_menu.setVisibility(View.GONE);
-                fab_test_menu.animate().translationY(floatingActionMenu.getHeight()).setInterpolator(new LinearInterpolator()).start();
-                floatingActionMenu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
+                fab_test_menu.animate().translationY(fab_general_menu.getHeight()).setInterpolator(new LinearInterpolator()).start();
+                fab_general_menu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
             }
         });
 
-        floatingActionMenu = (FloatingActionMenu) findViewById(R.id.fab_menu);
+        fab_general_menu = (FloatingActionMenu) findViewById(R.id.fab_menu);
         fab1 = (com.github.clans.fab.FloatingActionButton) findViewById(R.id.menu_item1);
         fab2 = (com.github.clans.fab.FloatingActionButton) findViewById(R.id.menu_item2);
         fab3 = (com.github.clans.fab.FloatingActionButton) findViewById(R.id.menu_item3);
-        fab4 = (com.github.clans.fab.FloatingActionButton) findViewById(R.id.menu_item4);
+       // fab4 = (com.github.clans.fab.FloatingActionButton) findViewById(R.id.menu_item4);
 
         fab1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                floatingActionMenu.close(true);
+                fab_general_menu.close(true);
                 if (!isPlacingRouter) {
                     isPlacingRouter = true;
                 }
@@ -166,7 +164,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         fab2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                floatingActionMenu.close(true);
+                fab_general_menu.close(true);
                 if (isPlacingRouter) {
                     isPlacingRouter = false;
                     isPlacingPin = true;
@@ -175,8 +173,8 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                     isPlacingPin = true;
                 }
 
-                floatingActionMenu.animate().translationY(floatingActionMenu.getHeight()).setInterpolator(new LinearInterpolator()).start();
-                fab_test_menu.animate().translationY(floatingActionMenu.getHeight()).setInterpolator(new LinearInterpolator()).start();
+                fab_general_menu.animate().translationY(fab_general_menu.getHeight()).setInterpolator(new LinearInterpolator()).start();
+                fab_test_menu.animate().translationY(fab_general_menu.getHeight()).setInterpolator(new LinearInterpolator()).start();
                 Toast.makeText(getApplicationContext(), "Tap to place pin at test location", Toast.LENGTH_SHORT).show();
             }
         });
@@ -184,19 +182,12 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         fab3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                floatingActionMenu.close(true);
-            }
-        });
-
-        fab4.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                floatingActionMenu.close(true);
-                new SaveHeatMapAsync().execute();
+                fab_general_menu.close(true);
             }
         });
 
         mDynamicList = new ArrayList<>();
+        mTestPinList = new ArrayList<>();
 
 
     }
@@ -220,21 +211,24 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        switch (item.getItemId()) {
+            case R.id.action_save_heat_map:
+                // selected the save option,  should pop up a dialog asking to confirm save
+                new SaveHeatMapAsync().execute("");
+                return true;
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        else if (id == R.id.action_load_heat_map) {
-            new LoadHeatMapAsync().execute();
-            return true;
-        }
+            case R.id.action_load_heat_map:
+                // selected load option, should take user to another activity to pick a map to load from a list
+                new LoadHeatMapAsync().execute("");
+                return  true;
 
-        return super.onOptionsItemSelected(item);
+            case R.id.action_settings:
+                // seleced the other options drop down menu
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -314,7 +308,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
             marker.remove();
         }
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        marker = mMap.addMarker(new MarkerOptions().position(latLng).title("My location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+        marker = mMap.addMarker(new MarkerOptions().position(latLng).title("My location").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_man_location)));
     }
 
     @Override
@@ -350,16 +344,16 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         lon = mLocation.getLongitude();
         Log.d(TAG, "lat :" + mLocation.getLatitude() + " lon: " + mLocation.getLongitude());
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lon), 19.6f));
-        marker = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title("My location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+        marker = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title("My location").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_man_location)));
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                floatingActionMenu.close(true);
+                fab_general_menu.close(true);
 
                 if (isPlacingPin) {
                     currentPinLocation = new LatLng(latLng.latitude, latLng.longitude);
-                    MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("Pin at lat: " + latLng.latitude + " lon: " + latLng.longitude).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                    MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("Pin at lat: " + latLng.latitude + " \n lon: " + latLng.longitude).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
                     Log.d(TAG, "New pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
                     pin = mMap.addMarker(markerOptions);
                     isPlacingPin = false;
@@ -377,72 +371,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
-                Log.d("ZOOM", "Zoom: " + cameraPosition.zoom);
-                float f = cameraPosition.zoom;
-                if (f == 21.0f && isScaled) {
-                    if (provider == null) {
-
-                    } else {
-                        isScaled = false;
-                        isScaledFar = true;
-                        isScaledAway = true;
-                        isScaledFarther = true;
-                        provider.setRadius(130);
-                        //overlay.clearTileCache();
-                        overlay.remove();
-                        overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
-
-                    }
-
-                } else if (f < 21.0f && f > 20.5f && isScaledFar) {
-                    if (provider == null) {
-
-                    } else {
-                        isScaled = true;
-                        isScaledFar = true;
-                        isScaledFarther = true;
-                        isScaledAway = true;
-                        provider.setRadius(70);
-                        overlay.clearTileCache();
-                    }
-                } else if (f <= 20.0f && f >= 19.0f && isScaledFarther) {
-                    if (provider == null) {
-
-                    } else {
-                        isScaledFarther = true;
-                        isScaled = true;
-                        isScaledFar = true;
-                        isScaledAway = true;
-                        provider.setRadius(30);
-                        overlay.clearTileCache();
-                    }
-                } else if (f < 19.0f && f > 16.0f && isScaledAway) {
-                    if (provider == null) {
-
-                    } else {
-                        isScaledAway = false;
-                        isScaledFarther = true;
-                        isScaled = true;
-                        isScaledFar = true;
-                        provider.setRadius(20);
-                        overlay.clearTileCache();
-                    }
-                }
-
-                /*if (cameraPosition.zoom < zoomLevel) {
-                    if (provider == null) {
-
-                    } else {
-                        overlay.remove();
-                        provider.setRadius(50);
-                        overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
-                    }
-                }
-                else {
-                    overlay.remove();
-                    provider.setRadius(100);
-                    overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
-                }*/
+                Log.d("MAP_CAMERA_ZOOM", "Zoom: " + cameraPosition.zoom);
             }
         });
     }
@@ -500,17 +429,17 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
     }
 
-    private void addHeatMap2() {
+    private void addHeatMap3() {
 
         if (overlay != null) {
             overlay.remove();
         }
-        provider = new HeatmapTileProvider.Builder().weightedData(mDynamicList).radius(50).opacity(0.5).build();
-        provider.setRadius(200);
+        provider = new HeatmapTileProvider.Builder().weightedData(mTestPinList).radius(50).opacity(0.5).build();
+        provider.setRadius(100);
         overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
-        MarkerOptions markerOptions = new MarkerOptions().position(routerLoaction).title("My Router").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
-       // Log.d(TAG, "New pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
-        pin = mMap.addMarker(markerOptions);
+       // MarkerOptions markerOptions = new MarkerOptions().position(currentPinLocation).title("Test Pin").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+        // Log.d(TAG, "New pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
+       // pin = mMap.addMarker(markerOptions);
     }
 
 
@@ -561,7 +490,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
 
         @Override
         protected String doInBackground(String... urls) {
-            getHeatMapPointsFromBackend();
+           // getHeatMapPointsFromBackend();
             for(int i = 0; i < 3; i++) {
                 try {
                     Thread.sleep(1000);
@@ -578,7 +507,6 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         protected void onPostExecute(String unused) {
             progressDialog.dismiss();
             Toast.makeText(getApplicationContext(), "Heat Map successfully loaded!", Toast.LENGTH_SHORT).show();
-            addHeatMap2();
         }
     }
 
@@ -615,25 +543,28 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
         //String url = "http://cs1.smartrg.link:3000/heatmap_points/1.json";
         final ArrayList<WeightedLatLng> testPointList = new ArrayList<>();
-        for (int i = 5; i < 20; i++) {
-            String url = "http://cs1.smartrg.link:3000/heatmap_points/" + (i+1) + ".json";
+            String url = "http://cs1.smartrg.link:3000/heatmap_points?id=1";
             try {
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                         new Response.Listener<String>() {
                             @Override
                             public void onResponse(String response) {
                                 try {
+                                    HeatMap heatMap = new HeatMap();
                                     JSONObject json = new JSONObject(response);
-                                    String lat = json.optString("latitude");
-                                    String lon = json.optString("longitude");
-                                    String intensity = json.optString("jitter");
-                                    double latitude = Double.parseDouble(lat);
-                                    double longitude = Double.parseDouble(lon);
-                                    double intens = Double.parseDouble(intensity);
-                                    //Log.d("FFFFFFFFFFFFFFFFFF", "LATITUDE: " + lat);
-                                    //Log.d("FFFFFFFFFFFFFFFFFF", "LONGITUDE: " + lon);
-
-                                    mDynamicList.add(new WeightedLatLng(new LatLng(latitude, longitude), intens));
+                                    JSONArray points = json.getJSONArray("heatmap_points");
+                                    for (int i = 0; i < points.length(); i++) {
+                                        JSONObject jsonObject = points.getJSONObject(i);
+                                        String id = jsonObject.optString("id");
+                                        String client_info = jsonObject.optString("client_info");
+                                        Log.d("FFFFFFFFFFFFFFFFFFF", "id: " + id + " client: " + client_info);
+                                        String lat = jsonObject.optString("latitude");
+                                        String lon = jsonObject.optString("longitude");
+                                        double latitude = Double.parseDouble(lat);
+                                        double longitude = Double.parseDouble(lon);
+                                        double intens = 0.5;
+                                        mDynamicList.add(new WeightedLatLng(new LatLng(latitude, longitude), intens));
+                                    }
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
@@ -649,42 +580,5 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
-
-        String url2 = "http://cs1.smartrg.link:3000/routers/2.json";
-        try {
-            StringRequest stringRequest = new StringRequest(Request.Method.GET, url2,
-                    new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(String response) {
-                            try {
-                                JSONObject json = new JSONObject(response);
-                                String lat = json.optString("latitude");
-                                String lon = json.optString("longitude");
-                                double latitude = Double.parseDouble(lat);
-                                double longitude = Double.parseDouble(lon);
-                                routerLoaction = new LatLng(latitude, longitude);
-                                //Log.d("FFFFFFFFFFFFFFFFFF", "LATITUDE: " + lat);
-                                //Log.d("FFFFFFFFFFFFFFFFFF", "LONGITUDE: " + lon);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    },
-                    new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            error.printStackTrace();
-                        }
-                    });
-            requestQueue.add(stringRequest);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
     }
-
-
-
 }
