@@ -57,6 +57,7 @@ import com.google.android.gms.nearby.messages.Message;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -97,6 +98,14 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
     private WifiManager wifiManager;
     private String ipAddress;
     private IperfTaskHM iperfTask;
+    private double latitude;
+    private double longitude;
+    private double router_lat;
+    private double router_long;
+    private ArrayList<JSONObject> heatmapPointList = new ArrayList<JSONObject>();
+    private JSONObject heatmap;
+    private JSONArray routers;
+    private String residence;
 
     private float zoomLevel = 20.0f;
 
@@ -389,6 +398,8 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                     currentPinLocation = new LatLng(latLng.latitude, latLng.longitude);
                     MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("Pin at lat: " + latLng.latitude + " lon: " + latLng.longitude).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
                     Log.d(TAG, "New pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
+                    latitude = latLng.latitude;
+                    longitude = latLng.longitude;
                     pin = mMap.addMarker(markerOptions);
                     isPlacingPin = false;
                     fab_test_menu.setVisibility(View.VISIBLE);
@@ -396,6 +407,8 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                 } else if (isPlacingRouter) {
                     MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("My Router").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
                     Log.d(TAG, "New pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
+                    router_lat = latLng.latitude;
+                    router_long = latLng.longitude;
                     pin = mMap.addMarker(markerOptions);
                     isPlacingRouter = false;
                 }
@@ -564,6 +577,9 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                     e.printStackTrace();
                 }
             }
+            iperfTask.buildHeatmap(heatmapPointList);
+            iperfTask.makeFakeData();
+            iperfTask.buildJSON(heatmap, routers, residence);
             return null;
         }
 
@@ -598,7 +614,6 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                 }
             }
             //HeatMapService();
-
             return null;
         }
 
@@ -719,7 +734,8 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
 
         // get the device's ip address for use in iperf command
         if (wifiInfo != null) {
-            ipAddress = android.text.format.Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+            //This should return the right IP address if DCHP is enabled
+            ipAddress = android.text.format.Formatter.formatIpAddress(wifiManager.getDhcpInfo().serverAddress);
             Log.d("INIT_IPERF", "This is your IP: " + ipAddress);
             ipAddress = "192.168.0.2";
         }
@@ -831,12 +847,11 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
             JSONObject json = new JSONObject();
             String protocol = null;
             String output = strings[0];
-            //Log.d("FULL_OUTPUT", output);
             try {
                 json = new JSONObject(output);
                 protocol = json.getJSONObject("start").getJSONObject("test_start").getString("protocol");
             } catch (org.json.JSONException e) {
-                Log.d("JSONERROR", "Could not convert to JSONObject");
+                Log.d("JSONERROR", "Could not convert to JSONObject" + output);
             }
             if (protocol.equals("TCP")) {
                 try {
@@ -847,7 +862,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                     downstream = downbits * Math.pow(10, -6);
                     upstream = upbits * Math.pow(10, -6);
                 } catch (org.json.JSONException e) {
-                    Log.d("JSONERROR", "Could not convert to JSONObject");
+                    Log.d("JSONERROR", "Could not convert to JSONObject: " + output);
                 }
             }
             if (protocol.equals("UDP")) {
@@ -856,7 +871,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                     jitter = sum.getDouble("jitter_ms");
                     lost_percent = sum.getDouble("lost_percent");
                 } catch (org.json.JSONException e) {
-                    Log.d("JSONERROR", "Could not convert to JSONObject");
+                    Log.d("JSONERROR", "Could not convert to JSONObject" + output);
                 }
             }
             Log.d("ON_PROGRESS_UPDATE", "upstream: " + upstream.toString() + "\ndownstream: " + downstream.toString()
@@ -884,15 +899,72 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         public void buildHeatmapPoint() {
             JSONObject heatmapPoint = new JSONObject();
             try {
+                heatmapPoint.put("latitude", latitude);
+                heatmapPoint.put("longitude", longitude);
+                heatmapPoint.put("client_info", ""); //not determined
                 heatmapPoint.put("upstream_bps", upstream);
                 heatmapPoint.put("downstream_bps", downstream);
                 heatmapPoint.put("jitter", jitter);
+                heatmapPoint.put("client_rssi", wifiManager.getConnectionInfo().getRssi());
+                heatmapPoint.put("router_rssi", 0.0); //filler-probably just need the one rssi
+                heatmapPoint.put("num_active_clients", 1); //filler
+                heatmapPoint.put("client_tx_speed", 0.0); //filler
+                heatmapPoint.put("client_rx_speed", 0.0); //filler
+                heatmapPoint.put("client_tx_retries", 0); //filler
+                heatmapPoint.put("client_rx_retries", 0); //filler
                 heatmapPoint.put("retransmits", retransmits);
                 heatmapPoint.put("lost_percent", lost_percent);
             } catch (org.json.JSONException e) {
-                Log.d("JSONERROR", "Could not convert to JSONObject");
+                Log.d("JSONERROR", "Could not convert to JSONObject in buildHeatmapPoint");
             }
-            Log.d("JSON", heatmapPoint.toString());
+            //Log.d("JSON", heatmapPoint.toString());
+            heatmapPointList.add(heatmapPoint);
+        }
+
+        public void buildHeatmap(ArrayList <JSONObject> heatmapPointList) {
+            heatmap = new JSONObject();
+            JSONArray heatmap_points = new JSONArray();
+            for (JSONObject point : heatmapPointList) {
+                heatmap_points.put(point);
+            }
+            try {
+                heatmap.put("channel", ""); //filler
+                heatmap.put("radio", ""); //filler
+                heatmap.put("heatmap_points", heatmap_points);
+            } catch (org.json.JSONException e) {
+                Log.d("JSONERROR", "Could not convert to JSONObject in buildHeatmap");
+            }
+            //Log.d("JSON", heatmap.toString());
+        }
+
+        //TEMPORARY FUNCTION
+        public void makeFakeData(){
+            residence = "6745 Del Playa Dr, Goleta CA 93117";
+            routers = new JSONArray();
+            JSONObject router = new JSONObject();
+            try {
+                router.put("router-mac-address", "0000:0000:0000:0000");
+                router.put("serial_number", "12345678");
+                router.put("router_model", "SR400ac");
+                router.put("name", "name");
+                router.put("latitude", router_lat);
+                router.put("longitude", router_long);
+            } catch (org.json.JSONException e) {
+                Log.d("JSONERROR", "Could not convert to JSONObject in makeFakeData");
+            }
+            routers.put(router);
+        }
+
+        public void buildJSON(JSONObject heatmap, JSONArray routers, String residence) {
+            JSONObject save = new JSONObject();
+            try {
+                save.put("residence", residence);
+                save.put("routers", routers);
+                save.put("heatmap", heatmap);
+            } catch (org.json.JSONException e) {
+                Log.d("JSONERROR", "Could not convert to JSONObject in buildJSON");
+            }
+            Log.d("FULL JSON", save.toString());
         }
     }
 
