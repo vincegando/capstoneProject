@@ -630,7 +630,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
             //This should return the right IP address if DCHP is enabled
             ipAddress = android.text.format.Formatter.formatIpAddress(wifiManager.getDhcpInfo().serverAddress);
             Log.d("INIT_IPERF", "This is your IP: " + ipAddress);
-            ipAddress = "192.168.0.2";
+            //ipAddress = "192.168.0.2";
         }
         else {
             Toast.makeText(getApplicationContext(), "Test failed! Verify your device is connected to wifi and try again", Toast.LENGTH_SHORT).show();
