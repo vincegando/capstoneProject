@@ -53,8 +53,12 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".Activities.SpeedTestActivity"
-            android:label="Speed Test"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:label=""
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="capstone.cs189.com.smartnetwork.Activities.MainActivity" />
+        </activity>
         <activity
             android:name=".Activities.IperfActivity"
             android:label="Iperf3"

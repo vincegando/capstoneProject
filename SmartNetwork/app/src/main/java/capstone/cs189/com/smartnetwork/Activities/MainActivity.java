@@ -19,6 +19,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         RelativeLayout card_speed_test = (RelativeLayout)findViewById(R.id.card_speed_test);
         card_speed_test.setOnClickListener(new View.OnClickListener() {
