@@ -5,6 +5,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -12,8 +14,10 @@ import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NavUtils;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -60,7 +64,7 @@ import java.util.ArrayList;
 import capstone.cs189.com.smartnetwork.Classes.HeatMap;
 import capstone.cs189.com.smartnetwork.R;
 
-public class HeatMapActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     public GoogleMap mMap;
     private MapFragment mapFragment;
@@ -88,15 +92,12 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         setContentView(R.layout.activity_heat_map);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        final Drawable upArrow = ContextCompat.getDrawable(this, R.drawable.abc_ic_ab_back_material);
+        upArrow.setColorFilter(getResources().getColor(R.color.colorWhite), PorterDuff.Mode.SRC_ATOP);
+        getSupportActionBar().setHomeAsUpIndicator(upArrow);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
 
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -194,14 +195,10 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
+        // Do Here what ever you want do on back press;
+        Log.d("BACK PRESSED", "(Physical) phone back button pressed!");
+        NavUtils.navigateUpFromSameTask(this);
     }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -217,11 +214,6 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                 new SaveHeatMapAsync().execute("");
                 return true;
 
-            case R.id.action_load_heat_map:
-                // selected load option, should take user to another activity to pick a map to load from a list
-                new LoadHeatMapAsync().execute("");
-                return  true;
-
             case R.id.action_settings:
                 // seleced the other options drop down menu
                 return true;
@@ -229,30 +221,6 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
             default:
                 return super.onOptionsItemSelected(item);
         }
-    }
-
-    @SuppressWarnings("StatementWithEmptyBody")
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-        if (id == R.id.nav_home) {
-            Intent intent = new Intent(HeatMapActivity.this, HomeActivity.class);
-            startActivity(intent);
-        } else if (id == R.id.nav_speed_test) {
-            Intent intent = new Intent(HeatMapActivity.this, SpeedTestActivity.class);
-            startActivity(intent);
-        } else if (id == R.id.nav_map) {
-
-        } else if (id == R.id.nav_settings) {
-
-        } else if (id == R.id.nav_share) {
-
-        }
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
     }
 
     @Override
@@ -304,11 +272,11 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
 
     @Override
     public void onLocationChanged(Location location) {
-        if (marker != null) {
-            marker.remove();
-        }
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        marker = mMap.addMarker(new MarkerOptions().position(latLng).title("My location").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_man_location)));
+       // if (marker != null) {
+       //     marker.remove();
+       // }
+       // LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+       // marker = mMap.addMarker(new MarkerOptions().position(latLng).title("My location").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_man_location)));
     }
 
     @Override
@@ -344,7 +312,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         lon = mLocation.getLongitude();
         Log.d(TAG, "lat :" + mLocation.getLatitude() + " lon: " + mLocation.getLongitude());
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lon), 19.6f));
-        marker = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title("My location").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_man_location)));
+       // marker = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title("My location").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_man_location)));
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override

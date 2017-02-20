@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context=".Activities.HeatMapActivity">
+    tools:context=".Activities.HeatMapSelectActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -34,6 +34,6 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_heat_map" />
+    <include layout="@layout/content_heat_map_select" />
 
 </android.support.design.widget.CoordinatorLayout>

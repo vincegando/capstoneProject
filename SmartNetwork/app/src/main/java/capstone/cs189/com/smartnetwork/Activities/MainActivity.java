@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         card_heat_map.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, HeatMapActivity.class);
+                Intent intent = new Intent(MainActivity.this, HeatMapSelectActivity.class);
                 startActivity(intent);
 
             }

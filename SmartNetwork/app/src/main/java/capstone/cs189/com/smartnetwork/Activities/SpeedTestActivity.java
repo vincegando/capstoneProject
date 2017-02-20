@@ -45,11 +45,10 @@ import capstone.cs189.com.smartnetwork.Views.ColorArcProgressBar;
 public class SpeedTestActivity extends AppCompatActivity {
 
     private ColorArcProgressBar colorArcProgressBar;
-    private Button button;
-    private TextView text_max, text_min, text_retry, text_drops, text_errors;
     private WifiManager wifiManager;
     private String ipAddress;
     private IperfTask iperfTask;
+    private TextView button_start;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,19 +56,20 @@ public class SpeedTestActivity extends AppCompatActivity {
         setContentView(R.layout.activity_speed_test);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         final Drawable upArrow = ContextCompat.getDrawable(this, R.drawable.abc_ic_ab_back_material);
         upArrow.setColorFilter(getResources().getColor(R.color.colorWhite), PorterDuff.Mode.SRC_ATOP);
         getSupportActionBar().setHomeAsUpIndicator(upArrow);
 
         colorArcProgressBar = (ColorArcProgressBar) findViewById(R.id.speed_meter);
-       // button = (Button) findViewById(R.id.button);
-     /*   button.setOnClickListener(new View.OnClickListener() {
+        button_start = (TextView)findViewById(R.id.button_start);
+        button_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 initIperf();
             }
-        });*/
+        });
     }
 
     @Override
@@ -162,7 +162,7 @@ public class SpeedTestActivity extends AppCompatActivity {
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
             max = wifiInfo.getLinkSpeed();
             Log.d("ON_PRE_EXECUTE", "link speed: " + max);
-            button.setText("STOP");
+            //button.setText("STOP");
         }
 
         @Override
@@ -242,7 +242,7 @@ public class SpeedTestActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 Toast.makeText(getApplicationContext(), "test has finished", Toast.LENGTH_SHORT).show();
-                button.setText("TEST");
+              //  button.setText("TEST");
             }
         }
     }

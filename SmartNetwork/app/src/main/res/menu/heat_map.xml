@@ -3,17 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_save_heat_map"
-        android:icon="@mipmap/ic_save_white_24dp"
+        android:icon="@mipmap/ic_action_diskette"
         android:title="save"
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/action_load_heat_map"
-        android:title="load"
-        android:icon="@mipmap/ic_restore_page_white_24dp"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
     <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"
+        android:icon="@mipmap/ic_action_settings"
         android:title="@string/action_settings"
-        app:showAsAction="never" />
+        app:showAsAction="always" />
 </menu>

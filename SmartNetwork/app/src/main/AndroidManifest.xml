@@ -40,20 +40,30 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".Activities.HomeActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
-
+        </activity>
+        <activity
+            android:name=".Activities.HeatMapSelectActivity"
+            android:label=""
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="capstone.cs189.com.smartnetwork.Activities.MainActivity" />
         </activity>
         <activity
             android:name=".Activities.HeatMapActivity"
-            android:label="@string/title_activity_heat_map"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:label=""
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="capstone.cs189.com.smartnetwork.Activities.MainActivity" />
+        </activity>
         <activity
             android:name=".Activities.SpeedTestActivity"
-            android:label=""
+            android:label="Speed Test"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -63,7 +73,6 @@
             android:name=".Activities.IperfActivity"
             android:label="Iperf3"
             android:theme="@style/AppTheme.NoActionBar" />
-
     </application>
 
 </manifest>
