@@ -2,8 +2,6 @@ package capstone.cs189.com.smartnetwork.Activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -46,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
         card_devices.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+                Intent intent = new Intent(MainActivity.this, DevicesActivity.class);
                 startActivity(intent);
 
             }
@@ -57,8 +55,8 @@ public class MainActivity extends AppCompatActivity {
         card_settings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               // Intent intent = new Intent(MainActivity.this, SpeedTestActivity.class);
-               // startActivity(intent);
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(intent);
 
             }
         });
