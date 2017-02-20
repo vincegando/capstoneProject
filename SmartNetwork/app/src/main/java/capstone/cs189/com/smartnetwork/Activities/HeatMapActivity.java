@@ -62,6 +62,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -69,9 +70,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import capstone.cs189.com.smartnetwork.R;
 
@@ -106,6 +113,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
     private JSONObject heatmap;
     private JSONArray routers;
     private String residence;
+    private JSONObject save;
 
     private float zoomLevel = 20.0f;
 
@@ -580,6 +588,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
             iperfTask.buildHeatmap(heatmapPointList);
             iperfTask.makeFakeData();
             iperfTask.buildJSON(heatmap, routers, residence);
+            iperfTask.PostRequest();
             return null;
         }
 
@@ -943,7 +952,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
             routers = new JSONArray();
             JSONObject router = new JSONObject();
             try {
-                router.put("router-mac-address", "0000:0000:0000:0000");
+                router.put("mac_address", "0000:0000:0000:0000");
                 router.put("serial_number", "12345678");
                 router.put("router_model", "SR400ac");
                 router.put("name", "name");
@@ -956,7 +965,7 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
         }
 
         public void buildJSON(JSONObject heatmap, JSONArray routers, String residence) {
-            JSONObject save = new JSONObject();
+            save = new JSONObject();
             try {
                 save.put("residence", residence);
                 save.put("routers", routers);
@@ -965,6 +974,35 @@ public class HeatMapActivity extends AppCompatActivity implements NavigationView
                 Log.d("JSONERROR", "Could not convert to JSONObject in buildJSON");
             }
             Log.d("FULL JSON", save.toString());
+        }
+
+        public void PostRequest(){
+            String url="http://cs1.smartrg.link:3000/process_residence_information";
+            try {
+                URL object = new URL(url);
+                HttpURLConnection con = (HttpURLConnection) object.openConnection();
+                con.setDoOutput(true);
+                con.setRequestProperty("Content-Type", "application/json");
+                con.setRequestMethod("POST");
+                con.connect();
+                DataOutputStream printout = new DataOutputStream(con.getOutputStream ());
+                printout.writeBytes(save.toString());
+                printout.flush ();
+                printout.close ();
+
+                int HttpResult=con.getResponseCode();
+                if (HttpResult==HttpURLConnection.HTTP_OK){
+                    Log.d("HTTP", "HTTP_OK");
+                }else{
+                    Log.d("HTTP", "Bad response: " + HttpResult);
+                }
+            } catch (MalformedURLException e) {
+                Log.d("Exception", "MalformedURLException");
+                e.printStackTrace();
+            } catch (IOException e) {
+                Log.d("Exception", "IOException");
+                e.printStackTrace();
+            }
         }
     }
 
