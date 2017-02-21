@@ -85,6 +85,15 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="capstone.cs189.com.smartnetwork.Activities.MainActivity" />
         </activity>
+        <activity
+            android:name=".Activities.SpeedTestSettingsActivity"
+            android:label=""
+            android:parentActivityName=".Activities.SpeedTestActivity"
+            android:theme="@style/AppTheme.Preferences">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="capstone.cs189.com.smartnetwork.Activities.SpeedTestActivity" />
+        </activity>
     </application>
 
 </manifest>

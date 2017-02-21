@@ -2,6 +2,8 @@ package capstone.cs189.com.smartnetwork.Activities;
 
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -30,8 +32,12 @@ public class DevicesActivity extends AppCompatActivity {
         getSupportActionBar().setHomeAsUpIndicator(upArrow);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
+        WifiManager wifiManager = (WifiManager)getSystemService(WIFI_SERVICE);
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+
+
         TextView text_MAC = (TextView) findViewById(R.id.router_mac);
-        text_MAC.setText("MAC Address: " + getMacAddr());
+        text_MAC.setText("MAC: " + wifiInfo.getBSSID());
 
     }
 

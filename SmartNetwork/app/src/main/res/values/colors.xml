@@ -8,5 +8,6 @@
     <color name="colorBlack">#272A2F</color>
     <color name="colorWhite">#ffffff</color>
     <color name="colorAccentDark">#009B40</color>
+    <color name="colorGrey">#888888</color>
 
 </resources>
