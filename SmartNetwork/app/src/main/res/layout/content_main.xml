@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -9,99 +9,212 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="capstone.cs189.com.smartnetwork.MainActivity"
-    tools:showIn="@layout/app_bar_main">
-
-    <com.shinelw.library.ColorArcProgressBar
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/speed_meter"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
-        app:is_need_content="true"
-        app:front_color1="#ff0000"
-        app:front_color2="#ffff00"
-        app:front_color3="#00ff00"
-        app:max_value="100"
-        app:back_width="2dp"
-        app:front_width="10dp"
-        app:total_engle="270"
-        app:is_need_unit="true"
-        app:is_need_title="true"
-        app:is_need_dial="true"
-        app:string_title="Wifi Speed"
-        app:string_unit="mbps"
-        app:back_color="@android:color/darker_gray"
-        />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/button"
-        android:layout_marginTop="6dp"
-        android:text="Test"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/speed_meter"
-        />
+    tools:context="edu.ucsb.cs.cs185.brandonwicka.smartnetworkui.MainActivity"
+    android:weightSum="2"
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/detail_layout"
-        android:orientation="vertical"
-        android:weightSum="5"
-        android:layout_below="@id/button"
-        android:layout_marginTop="10dp"
-        android:gravity="center"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:weightSum="2"
         >
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/text_max"
-            android:text="PHY rate max: "
-            android:textSize="16sp"
-            android:layout_marginTop="7dp"
-            />
+        <android.support.v7.widget.CardView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            app:cardElevation="2dp"
+            app:cardCornerRadius="12dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/text_min"
-            android:text="PHY rate min: "
-            android:textSize="16sp"
-            android:layout_marginTop="7dp"
+            >
 
-            />
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:background="@color/colorPrimary"
+                android:id="@+id/card_speed_test"
+                android:clickable="true"
+                android:layout_height="match_parent">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/text_retry"
-            android:text="Number of retrys: "
-            android:textSize="16sp"
-            android:layout_marginTop="7dp"
-            />
+                <ImageView
+                    android:id="@+id/image_top_left"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:layout_marginTop="60dp"
+                    android:layout_centerHorizontal="true"
+                    android:src="@drawable/speedometer"
+                    />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/text_drops"
-            android:text="Number of drops: "
-            android:textSize="16sp"
-            android:layout_marginTop="7dp"
-            />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/image_top_left"
+                    android:layout_marginTop="28dp"
+                    android:textColor="@android:color/white"
+                    android:layout_centerHorizontal="true"
+                    android:text="Speed Test"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-thin"
+                    android:textStyle="bold"
+                    />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/text_errors"
-            android:text="Errors: "
-            android:textSize="16sp"
-            android:layout_marginTop="7dp"
-            />
+            </RelativeLayout>
 
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            app:cardElevation="2dp"
+            app:cardCornerRadius="12dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+
+            >
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/colorPrimary"
+                android:id="@+id/card_heat_map"
+                android:clickable="true"
+                >
+
+                <ImageView
+                    android:id="@+id/image_top_right"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="60dp"
+                    android:src="@drawable/map"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/image_top_right"
+                    android:layout_marginTop="28dp"
+                    android:textColor="@android:color/white"
+                    android:layout_centerHorizontal="true"
+                    android:text="Heat Map"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-thin"
+                    android:textStyle="bold"
+                    />
+
+            </RelativeLayout>
+
+        </android.support.v7.widget.CardView>
 
     </LinearLayout>
 
-</RelativeLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:weightSum="2"
+        >
+
+        <android.support.v7.widget.CardView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            app:cardElevation="2dp"
+            app:cardCornerRadius="12dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            >
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/colorPrimary"
+                android:id="@+id/card_devices"
+                android:clickable="true"
+
+                >
+
+                <ImageView
+                    android:id="@+id/image_bot_left"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="60dp"
+                    android:src="@drawable/wifi"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/image_bot_left"
+                    android:layout_marginTop="28dp"
+                    android:textColor="@android:color/white"
+                    android:layout_centerHorizontal="true"
+                    android:text="Devices"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-thin"
+                    android:textStyle="bold"
+                    />
+
+            </RelativeLayout>
+
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            app:cardElevation="2dp"
+            app:cardCornerRadius="12dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            >
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/colorPrimary"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:id="@+id/card_settings"
+                android:clickable="true"
+                >
+
+                <ImageView
+                    android:id="@+id/image_bot_right"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="60dp"
+                    android:src="@drawable/settings"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/image_bot_right"
+                    android:layout_marginTop="28dp"
+                    android:textColor="@android:color/white"
+                    android:layout_centerHorizontal="true"
+                    android:text="Settings"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-thin"
+                    android:textStyle="bold"
+                    />
+
+            </RelativeLayout>
+
+        </android.support.v7.widget.CardView>
+
+    </LinearLayout>
+
+
+</LinearLayout>

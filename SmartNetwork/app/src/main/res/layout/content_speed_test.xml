@@ -9,19 +9,18 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context=".Activities.SpeedTestActivity"
-    tools:showIn="@layout/app_bar_speed_test">
+    tools:context=".Activities.SpeedTestActivity">
 
-    <com.shinelw.library.ColorArcProgressBar
+    <capstone.cs189.com.smartnetwork.Views.ColorArcProgressBar
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/speed_meter"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
         app:is_need_content="true"
-        app:front_color1="#ff0000"
+        app:front_color1="#D9534F"
         app:front_color2="#ffff00"
-        app:front_color3="#00ff00"
+        app:front_color3="#12BD62"
         app:max_value="100"
         app:back_width="2dp"
         app:front_width="10dp"
@@ -31,77 +30,28 @@
         app:is_need_dial="true"
         app:string_title="Wifi Speed"
         app:string_unit="mbps"
-        app:back_color="@android:color/darker_gray"
+        app:back_color="@android:color/white"
         />
 
-    <Button
+    <TextView
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/button"
-        android:layout_marginTop="6dp"
-        android:text="Test"
+        android:layout_height="55dp"
+        android:id="@+id/button_start"
+        android:layout_marginTop="32dp"
         android:layout_centerHorizontal="true"
         android:layout_below="@id/speed_meter"
-        />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/detail_layout"
-        android:orientation="vertical"
-        android:weightSum="5"
-        android:layout_below="@id/button"
-        android:layout_marginTop="10dp"
+        android:background="@drawable/pill_button"
+        android:text="START TEST"
+        android:layout_marginLeft="65dp"
+        android:layout_marginRight="65dp"
+        android:textSize="17sp"
+        android:layout_centerInParent="true"
         android:gravity="center"
-        >
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/text_max"
-            android:text="PHY rate max: "
-            android:textSize="16sp"
-            android:layout_marginTop="7dp"
-            />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/text_min"
-            android:text="PHY rate min: "
-            android:textSize="16sp"
-            android:layout_marginTop="7dp"
-
-            />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/text_retry"
-            android:text="Number of retrys: "
-            android:textSize="16sp"
-            android:layout_marginTop="7dp"
-            />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/text_drops"
-            android:text="Number of drops: "
-            android:textSize="16sp"
-            android:layout_marginTop="7dp"
-            />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/text_errors"
-            android:text="Errors: "
-            android:textSize="16sp"
-            android:layout_marginTop="7dp"
-            />
-
-
-    </LinearLayout>
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        />
 
 </RelativeLayout>

@@ -2,11 +2,14 @@ package capstone.cs189.com.smartnetwork.Activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -23,8 +26,6 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.shinelw.library.ColorArcProgressBar;
-
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -39,16 +40,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import capstone.cs189.com.smartnetwork.R;
+import capstone.cs189.com.smartnetwork.Views.ColorArcProgressBar;
 
-public class SpeedTestActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+public class SpeedTestActivity extends AppCompatActivity {
 
     private ColorArcProgressBar colorArcProgressBar;
-    private Button button;
-    private TextView text_max, text_min, text_retry, text_drops, text_errors;
     private WifiManager wifiManager;
     private String ipAddress;
     private IperfTask iperfTask;
+    private TextView button_start;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,39 +56,20 @@ public class SpeedTestActivity extends AppCompatActivity
         setContentView(R.layout.activity_speed_test);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        final Drawable upArrow = ContextCompat.getDrawable(this, R.drawable.abc_ic_ab_back_material);
+        upArrow.setColorFilter(getResources().getColor(R.color.colorWhite), PorterDuff.Mode.SRC_ATOP);
+        getSupportActionBar().setHomeAsUpIndicator(upArrow);
 
         colorArcProgressBar = (ColorArcProgressBar) findViewById(R.id.speed_meter);
-        text_max = (TextView) findViewById(R.id.text_max);
-        text_min = (TextView) findViewById(R.id.text_min);
-        text_drops = (TextView) findViewById(R.id.text_drops);
-        text_retry = (TextView) findViewById(R.id.text_retry);
-        text_errors = (TextView) findViewById(R.id.text_errors);
-        button = (Button) findViewById(R.id.button);
-        button.setOnClickListener(new View.OnClickListener() {
+        button_start = (TextView)findViewById(R.id.button_start);
+        button_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 initIperf();
             }
         });
-    }
-
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
     }
 
     @Override
@@ -111,31 +92,6 @@ public class SpeedTestActivity extends AppCompatActivity
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @SuppressWarnings("StatementWithEmptyBody")
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-        if (id == R.id.nav_home) {
-            Intent intent = new Intent(SpeedTestActivity.this, HomeActivity.class);
-            startActivity(intent);
-        } else if (id == R.id.nav_speed_test) {
-
-        } else if (id == R.id.nav_map) {
-            Intent intent = new Intent(SpeedTestActivity.this, HeatMapActivity.class);
-            startActivity(intent);
-        } else if (id == R.id.nav_settings) {
-
-        } else if (id == R.id.nav_share) {
-
-        }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
     }
 
     public void initIperf() {
@@ -198,7 +154,7 @@ public class SpeedTestActivity extends AppCompatActivity
 
     public class IperfTask extends AsyncTask<Void, String, String> {
         Process p = null;
-        String command = "iperf3 -c " + ipAddress;
+        String command = "iperf3 -c " + ipAddress + " -R";
         int max;
 
         @Override
@@ -206,12 +162,12 @@ public class SpeedTestActivity extends AppCompatActivity
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
             max = wifiInfo.getLinkSpeed();
             Log.d("ON_PRE_EXECUTE", "link speed: " + max);
-            button.setText("STOP");
+            //button.setText("STOP");
         }
 
         @Override
         protected String doInBackground(Void... voids) {
-            if (!command.matches("(iperf3 )?((-[s,-server])|(-[c,-client] ([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5]))|(-[c,-client] \\w{1,63})|(-[h,-help]))(( -[f,-format] [bBkKmMgG])|(\\s)|( -[l,-len] \\d{1,5}[KM])|( -[B,-bind] \\w{1,63})|( -[r,-tradeoff])|( -[v,-version])|( -[N,-nodelay])|( -[T,-ttl] \\d{1,8})|( -[U,-single_udp])|( -[d,-dualtest])|( -[w,-window] \\d{1,5}[KM])|( -[n,-num] \\d{1,10}[KM])|( -[p,-port] \\d{1,5})|( -[L,-listenport] \\d{1,5})|( -[t,-time] \\d{1,8})|( -[i,-interval] \\d{1,4})|( -[u,-udp])|( -[b,-bandwidth] \\d{1,20}[bBkKmMgG])|( -[m,-print_mss])|( -[P,-parallel] d{1,2})|( -[M,-mss] d{1,20}))*"))
+            if (!command.matches("(iperf3 )?((-[s,-server])|(-[c,-client] ([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5]))|(-[c,-client] \\w{1,63})|(-[h,-help]))(( -[f,-format] [bBkKmMgG])|(\\s)|( -[l,-len] \\d{1,5}[KM])|( -[B,-bind] \\w{1,63})|( -[r,-tradeoff])|( -[v,-version])|( -[N,-nodelay])|( -[T,-ttl] \\d{1,8})|( -[U,-single_udp])|( -[d,-dualtest])|( -[w,-window] \\d{1,5}[KM])|( -[n,-num] \\d{1,10}[KM])|( -[p,-port] \\d{1,5})|( -[L,-listenport] \\d{1,5})|( -[t,-time] \\d{1,8})|( -[i,-interval] \\d{1,4})|( -[u,-udp])|( -[R, -reverse]) | ( -[b,-bandwidth] \\d{1,20}[bBkKmMgG])|( -[m,-print_mss])|( -[P,-parallel] d{1,2})|( -[M,-mss] d{1,20}))*"))
             {
                 Log.d("DO_IN_BACKGROUND", "Error! Invalid syntax for iperf3 command!");
                 publishProgress("Error: invalid syntax \n\n");
@@ -286,7 +242,7 @@ public class SpeedTestActivity extends AppCompatActivity
                     e.printStackTrace();
                 }
                 Toast.makeText(getApplicationContext(), "test has finished", Toast.LENGTH_SHORT).show();
-                button.setText("TEST");
+              //  button.setText("TEST");
             }
         }
     }

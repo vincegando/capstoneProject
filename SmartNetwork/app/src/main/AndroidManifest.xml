@@ -6,14 +6,14 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <!-- Needed only if your app targets Android 5.0 (API level 21) or higher. -->
     <uses-feature android:name="android.hardware.location.gps" />
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_launcher4"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
@@ -31,7 +31,7 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".Activities.HomeActivity"
+            android:name=".Activities.MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -41,19 +41,50 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".Activities.DevicesActivity"
+            android:label=""
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="capstone.cs189.com.smartnetwork.Activities.MainActivity" />
+        </activity>
+        <activity
+            android:name=".Activities.HeatMapSelectActivity"
+            android:label=""
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="capstone.cs189.com.smartnetwork.Activities.MainActivity" />
+        </activity>
+        <activity
             android:name=".Activities.HeatMapActivity"
-            android:label="@string/title_activity_heat_map"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:label=""
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="capstone.cs189.com.smartnetwork.Activities.MainActivity" />
+        </activity>
         <activity
             android:name=".Activities.SpeedTestActivity"
             android:label="Speed Test"
             android:theme="@style/AppTheme.NoActionBar">
-
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="capstone.cs189.com.smartnetwork.Activities.MainActivity" />
         </activity>
         <activity
             android:name=".Activities.IperfActivity"
             android:label="Iperf3"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Activities.SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:parentActivityName=".Activities.MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="capstone.cs189.com.smartnetwork.Activities.MainActivity" />
+        </activity>
     </application>
 
 </manifest>
