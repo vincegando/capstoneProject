@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.location.Criteria;
@@ -54,6 +55,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
+import com.google.maps.android.heatmaps.Gradient;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
 
@@ -78,6 +80,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import capstone.cs189.com.smartnetwork.Classes.HeatMap;
+import capstone.cs189.com.smartnetwork.Classes.RouterPoint;
+import capstone.cs189.com.smartnetwork.Classes.TestPoint;
 import capstone.cs189.com.smartnetwork.R;
 
 public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
@@ -89,7 +93,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
     private double lat;
     private double lon;
     private Location mLocation;
-    private Marker marker, pin;
+    private Marker routerMarker, testMarker;
     private FloatingActionMenu fab_general_menu, fab_test_menu;
     private com.github.clans.fab.FloatingActionButton fab1, fab2, fab3, fab_test_1, fab_test_2;
     private boolean isPlacingPin = false;
@@ -112,9 +116,11 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
     private JSONArray routers;
     private String residence;
     private JSONObject save;
+    private HeatMap mCurrentHeatMap;
+    private TestPoint mCurrentTestPoint;
+    private RouterPoint mCurrentRouterPoint;
 
-
-    private ProgressDialog progressDialog;
+    private ProgressDialog testingDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -143,52 +149,24 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             buildGoogleApiClient();
             mGoogleApiClient.connect();
         }
-        fab_test_menu = (FloatingActionMenu) findViewById(R.id.fab_menu_test_pin);
-        fab_test_1 = (FloatingActionButton) findViewById(R.id.menu_item_test_1);
-        fab_test_2 = (FloatingActionButton) findViewById(R.id.menu_item_test_2);
 
-        fab_test_1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                fab_test_menu.close(true);
-               // mDynamicList.add(new WeightedLatLng(currentPinLocation, 0.3));
-                mTestPinList.add(new WeightedLatLng(currentPinLocation, 0.5));
-                initIperfHM();
-                addHeatMap3();
-                //fab_test_menu.setVisibility(View.GONE);
-                fab_test_menu.animate().translationY(fab_general_menu.getHeight()).setInterpolator(new LinearInterpolator()).start();
-                fab_general_menu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
-            }
-        });
+        mTestPinList = new ArrayList<>();
+        mCurrentHeatMap = new HeatMap();
+        wifiManager = (WifiManager)getSystemService(WIFI_SERVICE);
 
-        fab_test_2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                fab_test_menu.close(true);
-                if (pin != null) {
-                    pin.remove();
-                }
-                //fab_test_menu.setVisibility(View.GONE);
-                fab_test_menu.animate().translationY(fab_general_menu.getHeight()).setInterpolator(new LinearInterpolator()).start();
-                fab_general_menu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
-            }
-        });
 
+        // Initialize click listeners for FAB main menu
         fab_general_menu = (FloatingActionMenu) findViewById(R.id.fab_menu);
         fab1 = (com.github.clans.fab.FloatingActionButton) findViewById(R.id.menu_item1);
         fab2 = (com.github.clans.fab.FloatingActionButton) findViewById(R.id.menu_item2);
         fab3 = (com.github.clans.fab.FloatingActionButton) findViewById(R.id.menu_item3);
-        //fab4 = (com.github.clans.fab.FloatingActionButton) findViewById(R.id.menu_item4);
-
         fab1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 fab_general_menu.close(true);
                 if (!isPlacingRouter) {
                     isPlacingRouter = true;
-                }
-                else {
-
+                } else {
                 }
                 Toast.makeText(getApplicationContext(), "Tap to place pin at router location", Toast.LENGTH_SHORT).show();
             }
@@ -210,7 +188,6 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 Toast.makeText(getApplicationContext(), "Tap to place pin at test location", Toast.LENGTH_SHORT).show();
             }
         });
-
         fab3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -218,10 +195,32 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             }
         });
 
-        mDynamicList = new ArrayList<>();
-        mTestPinList = new ArrayList<>();
-
-
+        // initialize on click listeners for test pin menu
+        fab_test_menu = (FloatingActionMenu) findViewById(R.id.fab_menu_test_pin);
+        fab_test_1 = (FloatingActionButton) findViewById(R.id.menu_item_test_1);
+        fab_test_2 = (FloatingActionButton) findViewById(R.id.menu_item_test_2);
+        fab_test_1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fab_test_menu.close(true);
+                //mTestPinList.add(new WeightedLatLng(currentPinLocation, 0.5));
+                initIperfHM();
+                //addHeatMap3();
+                fab_test_menu.animate().translationY(fab_general_menu.getHeight()).setInterpolator(new LinearInterpolator()).start();
+                fab_general_menu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
+            }
+        });
+        fab_test_2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fab_test_menu.close(true);
+                if (testMarker != null) {
+                    testMarker.remove();
+                }
+                fab_test_menu.animate().translationY(fab_general_menu.getHeight()).setInterpolator(new LinearInterpolator()).start();
+                fab_general_menu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
+            }
+        });
     }
 
     @Override
@@ -256,7 +255,6 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-       // Log.d("MAP READY", "MAP IS READY");
         mMap = googleMap;
         mMap.getUiSettings().setCompassEnabled(false);
         mMap.getUiSettings().setMapToolbarEnabled(false);
@@ -270,15 +268,12 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
                     //  permSet = true;
-
                     LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
                     String provider = locationManager.getBestProvider(new Criteria(), true);
                     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, HeatMapActivity.this);
-
                     buildGoogleApiClient();
                     mGoogleApiClient.connect();
                 } else {
@@ -349,24 +344,43 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             @Override
             public void onMapClick(LatLng latLng) {
                 fab_general_menu.close(true);
-
                 if (isPlacingPin) {
-                    currentPinLocation = new LatLng(latLng.latitude, latLng.longitude);
-                    MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("Pin at lat: " + latLng.latitude + " \n lon: " + latLng.longitude).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-                    Log.d(TAG, "New pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
-                    latitude = latLng.latitude;
-                    longitude = latLng.longitude;
-                    pin = mMap.addMarker(markerOptions);
+                    mCurrentTestPoint = new TestPoint(latLng.latitude, latLng.longitude);
+                    MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("Test Point ").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                    Log.d(TAG, "New test pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
+                    testMarker = mMap.addMarker(markerOptions);
                     isPlacingPin = false;
                     fab_test_menu.setVisibility(View.VISIBLE);
                     fab_test_menu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
-                } else if (isPlacingRouter) {
-                    MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("My Router").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
-                    Log.d(TAG, "New pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
+
+                }
+                else if (isPlacingRouter) {
+                    mCurrentRouterPoint = new RouterPoint(latLng.latitude, latLng.longitude);
+                    MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("Router").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
+                    Log.d(TAG, "New router pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
                     router_lat = latLng.latitude;
                     router_long = latLng.longitude;
-                    pin = mMap.addMarker(markerOptions);
+                    testMarker = mMap.addMarker(markerOptions);
                     isPlacingRouter = false;
+                    WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                    int rssi = 0;
+                    rssi = wifiInfo.getRssi();
+                    mCurrentRouterPoint.setRssi(rssi);
+                    Log.d("ROUTER INFO", "base router rssi: " + rssi);
+                    Toast.makeText(getApplicationContext(), "base rssi: " + rssi, Toast.LENGTH_SHORT).show();
+
+
+
+                    mCurrentHeatMap.addRouterPin(mCurrentRouterPoint);
+                    ArrayList<WeightedLatLng> testList = mCurrentHeatMap.createWeightedList();
+
+                    int[]colors = { Color.rgb(255, 0, 0), Color.rgb(102,255,0)};
+                    float[] startPoints = { 0.2f, 1f};
+                    Gradient gradient = new Gradient(colors, startPoints);
+
+                    provider = new HeatmapTileProvider.Builder().weightedData(testList).radius(50).opacity(0.5).gradient(gradient).build();
+                    provider.setRadius(100);
+                    overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
                 }
             }
         });
@@ -375,6 +389,13 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
                 Log.d("MAP_CAMERA_ZOOM", "Zoom: " + cameraPosition.zoom);
+            }
+        });
+
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                return true;
             }
         });
     }
@@ -413,7 +434,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
     private void addHeatMap() {
         list = new ArrayList<>();
         list.add(new WeightedLatLng(new LatLng(34.414742005466145, -119.85553208738565), 0.3));
-       list.add(new WeightedLatLng(new LatLng(34.414742005466145, -119.8556376993656), 0.2));
+        list.add(new WeightedLatLng(new LatLng(34.414742005466145, -119.8556376993656), 0.2));
         list.add(new WeightedLatLng(new LatLng(34.41466511282376, -119.85563702881335), 0.8));
         list.add(new WeightedLatLng(new LatLng(34.41464215565424, -119.85556226223709), 0.9));
         list.add(new WeightedLatLng(new LatLng(34.41470106982359, -119.85552404075861), 0.8));
@@ -432,30 +453,16 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
     }
 
-    private void addHeatMap3() {
-
-        if (overlay != null) {
-            overlay.remove();
-        }
-        provider = new HeatmapTileProvider.Builder().weightedData(mTestPinList).radius(50).opacity(0.5).build();
-        provider.setRadius(100);
-        overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
-       // MarkerOptions markerOptions = new MarkerOptions().position(currentPinLocation).title("Test Pin").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-        // Log.d(TAG, "New pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
-       // pin = mMap.addMarker(markerOptions);
-    }
-
-
     private class SaveHeatMapAsync extends AsyncTask<String, String, String> {
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            progressDialog =  new ProgressDialog(HeatMapActivity.this);
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            progressDialog.setMessage("Saving Heat Map...");
-            progressDialog.setCancelable(true);
-            progressDialog.show();
+           // progressDialog =  new ProgressDialog(HeatMapActivity.this);
+           // progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+           // progressDialog.setMessage("Saving Heat Map...");
+           // progressDialog.setCancelable(true);
+           // progressDialog.show();
         }
 
         @Override
@@ -477,7 +484,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
         @Override
         protected void onPostExecute(String unused) {
-            progressDialog.dismiss();
+           // progressDialog.dismiss();
             Toast.makeText(getApplicationContext(), "Heat Map successfully saved!", Toast.LENGTH_SHORT).show();
 
         }
@@ -488,11 +495,11 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            progressDialog =  new ProgressDialog(HeatMapActivity.this);
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            progressDialog.setMessage("Loading Heat Map...");
-            progressDialog.setCancelable(true);
-            progressDialog.show();
+            testingDialog = new ProgressDialog(HeatMapActivity.this);
+            testingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            testingDialog.setMessage("Test is in progress. . . ");
+            testingDialog.setCancelable(true);
+            testingDialog.show();
         }
 
         @Override
@@ -512,7 +519,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
         @Override
         protected void onPostExecute(String unused) {
-            progressDialog.dismiss();
+           // progressDialog.dismiss();
             Toast.makeText(getApplicationContext(), "Heat Map successfully loaded!", Toast.LENGTH_SHORT).show();
         }
     }
@@ -590,15 +597,14 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     public void initIperfHM() {
-        wifiManager = (WifiManager)getSystemService(WIFI_SERVICE);
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
 
         // get the device's ip address for use in iperf command
         if (wifiInfo != null) {
-            //This should return the right IP address if DCHP is enabled
+            //This should return the right IP address if DHCP is enabled
             ipAddress = android.text.format.Formatter.formatIpAddress(wifiManager.getDhcpInfo().serverAddress);
+            ipAddress = "192.168.0.2";
             Log.d("INIT_IPERF", "This is your IP: " + ipAddress);
-            //ipAddress = "192.168.0.2";
         }
         else {
             Toast.makeText(getApplicationContext(), "Test failed! Verify your device is connected to wifi and try again", Toast.LENGTH_SHORT).show();
@@ -647,7 +653,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         iperfTask.execute();
     }
 
-    public class IperfTaskHM extends AsyncTask<Void, String, String> {
+    private class IperfTaskHM extends AsyncTask<Void, String, String> {
         Process p = null;
         String command = "iperf3 -c " + ipAddress;
         String tcp_command = "iperf3 -c " + ipAddress + " -R -J -t 5";
@@ -660,9 +666,15 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         Integer retransmits = 0;
         Double jitter = 0.0;
         Double lost_percent = 0.0;
+        Integer rssi = 0;
 
         @Override
         protected void onPreExecute() {
+            testingDialog = new ProgressDialog(HeatMapActivity.this);
+            testingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            testingDialog.setMessage("Test is in progress. . . ");
+            testingDialog.setCancelable(true);
+            testingDialog.show();
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
             max = wifiInfo.getLinkSpeed();
             Log.d("ON_PRE_EXECUTE", "link speed: " + max);
@@ -742,23 +754,89 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
         @Override
         public void onPostExecute(String result) {
+            // get the rssi value at the end of iperf tests
+            rssi = wifiManager.getConnectionInfo().getRssi();
+
             //The running process is destroyed and system resources are freed.
             if (p != null) {
                 p.destroy();
-
                 try {
                     p.waitFor();
                 } catch (InterruptedException e) {
-
                     e.printStackTrace();
                 }
-                Toast.makeText(getApplicationContext(), "test has finished", Toast.LENGTH_SHORT).show();
+
+                testingDialog.dismiss();
+                //Toast.makeText(getApplicationContext(), "test has finished", Toast.LENGTH_SHORT).show();
             }
+            fancyShadingAlgorithm();
             buildHeatmapPoint();
+        }
+
+
+        public void fancyShadingAlgorithm() {
+            mCurrentTestPoint.setRssi(rssi);
+            mCurrentTestPoint.setDownstream(downstream);
+            mCurrentTestPoint.setUpstream(upstream);
+            mCurrentTestPoint.setJitter(jitter);
+            mCurrentTestPoint.setLostPercentage(lost_percent);
+            mCurrentTestPoint.setRetransmits(retransmits);
+
+            Integer base_rssi = mCurrentRouterPoint.getRssi();
+            Integer test_rssi = rssi;
+            if (test_rssi + 5 >= base_rssi) {
+                mCurrentTestPoint.setIntensity(1.0);
+            }
+            else if (test_rssi + 10 >= base_rssi) {
+                mCurrentTestPoint.setIntensity(0.8);
+            }
+            else if (test_rssi + 15 >= base_rssi) {
+                mCurrentTestPoint.setIntensity(0.6);
+            }
+            else if (test_rssi + 20 >= base_rssi) {
+                mCurrentTestPoint.setIntensity(0.4);
+            }
+            else if (test_rssi + 25 >= base_rssi) {
+                mCurrentTestPoint.setIntensity(0.3);
+            }
+            else if (test_rssi + 30 >= base_rssi) {
+                mCurrentTestPoint.setIntensity(0.2);
+            }
+            else if (test_rssi + 35 >= base_rssi) {
+                mCurrentTestPoint.setIntensity(0.2);
+            }
+            else if (test_rssi + 40 >= base_rssi) {
+                mCurrentTestPoint.setIntensity(0.1);
+            }
+            else if (test_rssi + 45 >= base_rssi) {
+                mCurrentTestPoint.setIntensity(0.0);
+            }
+
+            mCurrentHeatMap.addTestPin(mCurrentTestPoint);
+            ArrayList<WeightedLatLng> testList = mCurrentHeatMap.createWeightedList();
+
+            if (overlay != null) {
+                overlay.remove();
+            }
+            Log.d("ABOUT TO ADD HEATMAP", "test pin rssi: " + rssi);
+            Log.d("ABOUT TO ADD HEATMAP", "test pin intensity: " + mCurrentTestPoint.getIntensity());
+            Toast.makeText(getApplicationContext(), "rssi: " + rssi + " intensity: " + mCurrentTestPoint.getIntensity(), Toast.LENGTH_SHORT).show();
+
+            int[]colors = { Color.rgb(255, 0, 0), Color.rgb(102,255,0)};
+            float[] startPoints = { 0.2f, 1f};
+            Gradient gradient = new Gradient(colors, startPoints);
+
+
+
+            provider = new HeatmapTileProvider.Builder().weightedData(testList).radius(50).opacity(0.5).gradient(gradient).build();
+            provider.setRadius(100);
+            overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
         }
 
         public void buildHeatmapPoint() {
             JSONObject heatmapPoint = new JSONObject();
+
+
             try {
                 heatmapPoint.put("latitude", latitude);
                 heatmapPoint.put("longitude", longitude);
@@ -766,7 +844,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 heatmapPoint.put("upstream_bps", upstream);
                 heatmapPoint.put("downstream_bps", downstream);
                 heatmapPoint.put("jitter", jitter);
-                heatmapPoint.put("client_rssi", wifiManager.getConnectionInfo().getRssi());
+                heatmapPoint.put("client_rssi", rssi);
                 heatmapPoint.put("router_rssi", 0.0); //filler-probably just need the one rssi
                 heatmapPoint.put("num_active_clients", 1); //filler
                 heatmapPoint.put("client_tx_speed", 0.0); //filler
@@ -778,9 +856,14 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             } catch (org.json.JSONException e) {
                 Log.d("JSONERROR", "Could not convert to JSONObject in buildHeatmapPoint");
             }
+            Log.d("HEATMAP BUILDING", "RSSI: " + rssi);
             //Log.d("JSON", heatmapPoint.toString());
             heatmapPointList.add(heatmapPoint);
         }
+
+
+
+
 
         public void buildHeatmap(ArrayList <JSONObject> heatmapPointList) {
             heatmap = new JSONObject();

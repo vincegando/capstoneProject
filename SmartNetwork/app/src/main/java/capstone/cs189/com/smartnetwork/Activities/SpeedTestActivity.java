@@ -48,7 +48,7 @@ public class SpeedTestActivity extends AppCompatActivity {
     private WifiManager wifiManager;
     private String ipAddress;
     private IperfTask iperfTask;
-    private TextView button_start;
+    private TextView button_start, rssi;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +62,7 @@ public class SpeedTestActivity extends AppCompatActivity {
         upArrow.setColorFilter(getResources().getColor(R.color.colorWhite), PorterDuff.Mode.SRC_ATOP);
         getSupportActionBar().setHomeAsUpIndicator(upArrow);
 
+        rssi = (TextView)findViewById(R.id.test_rssi);
         colorArcProgressBar = (ColorArcProgressBar) findViewById(R.id.speed_meter);
         button_start = (TextView)findViewById(R.id.button_start);
         button_start.setOnClickListener(new View.OnClickListener() {
@@ -229,6 +230,9 @@ public class SpeedTestActivity extends AppCompatActivity {
                 colorArcProgressBar.setCurrentValues(speed);
                 colorArcProgressBar.setMaxValues(max);
             }
+            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+            rssi.setText("RSSI: " + wifiInfo.getRssi());
+
         }
 
         @Override
