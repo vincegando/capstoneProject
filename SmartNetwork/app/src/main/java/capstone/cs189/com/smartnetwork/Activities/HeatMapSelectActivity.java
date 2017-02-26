@@ -38,7 +38,7 @@ public class HeatMapSelectActivity extends AppCompatActivity {
         button_load.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(HeatMapSelectActivity.this, HeatMapActivity.class);
+                Intent intent = new Intent(HeatMapSelectActivity.this, HeatMapLoadActivity.class);
                 startActivity(intent);
             }
         });

@@ -21,6 +21,14 @@ public class HeatMap {
         routerPinCount = 0;
     }
 
+    public HeatMap(String date) {
+        testPointList = new ArrayList<>();
+        routerPointList = new ArrayList<>();
+        createdDate = date;
+        testPinCount = 0;
+        routerPinCount = 0;
+    }
+
     public HeatMap(ArrayList<TestPoint> testList, ArrayList<RouterPoint> routerList, String date) {
         testPointList = testList;
         routerPointList = routerList;
