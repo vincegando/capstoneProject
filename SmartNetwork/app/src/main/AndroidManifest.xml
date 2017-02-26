@@ -60,9 +60,7 @@
             android:name=".Activities.HeatMapActivity"
             android:label=""
             android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="capstone.cs189.com.smartnetwork.Activities.MainActivity" />
+
         </activity>
         <activity
             android:name=".Activities.SpeedTestActivity"

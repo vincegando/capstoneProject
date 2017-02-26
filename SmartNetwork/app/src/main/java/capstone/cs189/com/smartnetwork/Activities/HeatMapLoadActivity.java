@@ -1,5 +1,6 @@
 package capstone.cs189.com.smartnetwork.Activities;
 
+import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -58,7 +59,9 @@ public class HeatMapLoadActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 HeatMap heatMap = heatMaps.get(position);
-                Toast.makeText(getApplicationContext(), "Touched ", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(), "Touched ", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(HeatMapLoadActivity.this, HeatMapActivity.class);
+                startActivity(intent);
             }
         });
     }

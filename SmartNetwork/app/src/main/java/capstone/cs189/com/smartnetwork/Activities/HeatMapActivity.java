@@ -257,7 +257,8 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
     public void onBackPressed() {
         // Do Here what ever you want do on back press;
         Log.d("BACK PRESSED", "(Physical) phone back button pressed!");
-        NavUtils.navigateUpFromSameTask(this);
+        finish();
+        //NavUtils.navigateUpFromSameTask(this);
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -276,6 +277,11 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
             case R.id.action_settings:
                 // seleced the other options drop down menu
+                return true;
+
+            case android.R.id.home:
+                Log.d("BACK PRESSED", "back pressed from toolbar");
+                onBackPressed();
                 return true;
 
             default:
