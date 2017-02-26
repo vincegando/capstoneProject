@@ -103,8 +103,8 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
     private WifiManager wifiManager;
     private String ipAddress;
     private IperfTaskHM iperfTask;
-    private double latitude;
-    private double longitude;
+    private double pin_latitude;
+    private double pin_longitude;
     private double router_lat;
     private double router_long;
     private ArrayList<JSONObject> heatmapPointList = new ArrayList<JSONObject>();
@@ -354,8 +354,8 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                     currentPinLocation = new LatLng(latLng.latitude, latLng.longitude);
                     MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("Pin at lat: " + latLng.latitude + " \n lon: " + latLng.longitude).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
                     Log.d(TAG, "New pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
-                    latitude = latLng.latitude;
-                    longitude = latLng.longitude;
+                    pin_latitude = latLng.latitude;
+                    pin_longitude = latLng.longitude;
                     pin = mMap.addMarker(markerOptions);
                     isPlacingPin = false;
                     fab_test_menu.setVisibility(View.VISIBLE);
@@ -598,7 +598,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             //This should return the right IP address if DCHP is enabled
             ipAddress = android.text.format.Formatter.formatIpAddress(wifiManager.getDhcpInfo().serverAddress);
             Log.d("INIT_IPERF", "This is your IP: " + ipAddress);
-            //ipAddress = "192.168.0.2";
+            ipAddress = "192.168.0.2";
         }
         else {
             Toast.makeText(getApplicationContext(), "Test failed! Verify your device is connected to wifi and try again", Toast.LENGTH_SHORT).show();
@@ -760,8 +760,8 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         public void buildHeatmapPoint() {
             JSONObject heatmapPoint = new JSONObject();
             try {
-                heatmapPoint.put("latitude", latitude);
-                heatmapPoint.put("longitude", longitude);
+                heatmapPoint.put("latitude", pin_latitude);
+                heatmapPoint.put("longitude", pin_longitude);
                 heatmapPoint.put("client_info", ""); //not determined
                 heatmapPoint.put("upstream_bps", upstream);
                 heatmapPoint.put("downstream_bps", downstream);
