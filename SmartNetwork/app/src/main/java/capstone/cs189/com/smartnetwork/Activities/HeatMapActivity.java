@@ -110,8 +110,9 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
     private ArrayList<JSONObject> heatmapPointList = new ArrayList<JSONObject>();
     private JSONObject heatmap;
     private JSONArray routers;
-    private String residence;
+    private JSONObject residence;
     private JSONObject save;
+    private String acct_num;
 
 
     private ProgressDialog progressDialog;
@@ -800,10 +801,13 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
         //TEMPORARY FUNCTION
         public void makeFakeData(){
-            residence = "6745 Del Playa Dr, Goleta CA 93117";
+            residence = new JSONObject();
+            acct_num = "1234567"; //get user input
             routers = new JSONArray();
             JSONObject router = new JSONObject();
             try {
+                residence.put("address", "6745 Del Playa Dr");
+                residence.put("account_number", acct_num);
                 router.put("mac_address", "0000:0000:0000:0000");
                 router.put("serial_number", "12345678");
                 router.put("router_model", "SR400ac");
@@ -816,7 +820,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             routers.put(router);
         }
 
-        public void buildJSON(JSONObject heatmap, JSONArray routers, String residence) {
+        public void buildJSON(JSONObject heatmap, JSONArray routers, JSONObject residence) {
             save = new JSONObject();
             try {
                 save.put("residence", residence);
