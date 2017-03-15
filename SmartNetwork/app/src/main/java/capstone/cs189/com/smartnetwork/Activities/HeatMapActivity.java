@@ -420,7 +420,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                     MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("Test Point ").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
                     Log.d(TAG, "New test pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
                     pin_latitude = latLng.latitude;
-                    pin_longitude = latLng.longitude
+                    pin_longitude = latLng.longitude;
                     testMarker = mMap.addMarker(markerOptions);
                     mTestMarkerList.add(testMarker);
                     isPlacingPin = false;
@@ -974,7 +974,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 alertDialog.setTitle("Attention");
                 alertDialog.setIcon(R.mipmap.ic_warning_black_24dp);
                 alertDialog.setMessage("Your wifi signal at this spot is poor! You should think about adding an extender near this location.");
-                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Ok, sounds good", new DialogInterface.OnClickListener() {
+                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Ok, check it out", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         //alertDialog.dismiss();
@@ -1062,7 +1062,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             routers.put(router);
         }
 
-        public void buildJSON(JSONObject heatmap, JSONArray routers, String residence) {
+        public void buildJSON(JSONObject heatmap, JSONArray routers, JSONObject residence) {
             save = new JSONObject();
             try {
                 save.put("residence", residence);
