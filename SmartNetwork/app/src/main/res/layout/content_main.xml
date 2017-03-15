@@ -38,6 +38,7 @@
                 android:background="@color/colorPrimary"
                 android:id="@+id/card_speed_test"
                 android:clickable="true"
+                android:foreground="?android:attr/selectableItemBackground"
                 android:layout_height="match_parent">
 
                 <ImageView
@@ -84,6 +85,8 @@
                 android:background="@color/colorPrimary"
                 android:id="@+id/card_heat_map"
                 android:clickable="true"
+                android:foreground="?android:attr/selectableItemBackground"
+
                 >
 
                 <ImageView
@@ -139,6 +142,7 @@
                 android:background="@color/colorPrimary"
                 android:id="@+id/card_devices"
                 android:clickable="true"
+                android:foreground="?android:attr/selectableItemBackground"
 
                 >
 

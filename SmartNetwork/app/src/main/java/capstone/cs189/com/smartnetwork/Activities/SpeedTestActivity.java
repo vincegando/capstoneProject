@@ -1,5 +1,6 @@
 package capstone.cs189.com.smartnetwork.Activities;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PorterDuff;
@@ -49,6 +50,13 @@ public class SpeedTestActivity extends AppCompatActivity {
     private String ipAddress;
     private IperfTask iperfTask;
     private TextView button_start, rssi;
+    Runnable runnable;
+    Handler handler = new Handler();
+
+    private String ip;
+    private boolean settingsChanged=false;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,8 +77,26 @@ public class SpeedTestActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 initIperf();
+                //fakeBadSpeedTest();
             }
         });
+    }
+
+    int [] numbers = {20, 19, 22, 25, 20, 18, 17, 19, 21, 20, 21, 18};
+
+    public void fakeBadSpeedTest() {
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                runnable = this;
+                Random r = new Random();
+                int randomActual = r.nextInt(60 - 50) + 50;
+                int randomMax = r.nextInt(100 - 80) + 80;
+                colorArcProgressBar.setCurrentValues(randomActual);
+                colorArcProgressBar.setMaxValues(70);
+                handler.postDelayed(this, 800);
+            }
+        }, 2000);
     }
 
     @Override
@@ -78,6 +104,21 @@ public class SpeedTestActivity extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.speed_test, menu);
         return true;
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == 1) {
+            if(resultCode == Activity.RESULT_OK){
+                ip =data.getStringExtra("ip");
+                settingsChanged = true;
+            }
+            if (resultCode == Activity.RESULT_CANCELED) {
+                //Write your code if there's no result
+            }
+        }
     }
 
     @Override
@@ -90,7 +131,7 @@ public class SpeedTestActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             Intent intent = new Intent(SpeedTestActivity.this, SpeedTestSettingsActivity.class);
-            startActivity(intent);
+            startActivityForResult(intent, 1);
             return true;
         }
 
@@ -103,9 +144,13 @@ public class SpeedTestActivity extends AppCompatActivity {
 
         // get the device's ip address for use in iperf command
         if (wifiInfo != null) {
-            ipAddress = android.text.format.Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+            ipAddress = android.text.format.Formatter.formatIpAddress(wifiManager.getDhcpInfo().gateway);
             Log.d("INIT_IPERF", "This is your IP: " + ipAddress);
-            ipAddress = "192.168.0.2";
+            //ipAddress = "192.168.0.2";
+            if (settingsChanged) {
+                ipAddress = ip;
+                Log.d("INIT_IPERF", "Settings changed! Your manually entered ip is: " + ipAddress);
+            }
         }
         else {
             Toast.makeText(getApplicationContext(), "Test failed! Verify your device is connected to wifi and try again", Toast.LENGTH_SHORT).show();

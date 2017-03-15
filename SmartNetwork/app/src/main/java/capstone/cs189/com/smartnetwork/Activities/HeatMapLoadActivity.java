@@ -42,14 +42,14 @@ public class HeatMapLoadActivity extends AppCompatActivity {
         ListView listView = (ListView)findViewById(R.id.load_list_view);
 
         heatMaps = new ArrayList<>();
-        heatMaps.add(new HeatMap("2/24/2017"));
-        heatMaps.add(new HeatMap("1/1/2017"));
-        heatMaps.add(new HeatMap("12/22/2016"));
-        heatMaps.add(new HeatMap("12/22/2016"));
-        heatMaps.add(new HeatMap("12/22/2016"));
-        heatMaps.add(new HeatMap("12/22/2016"));
-        heatMaps.add(new HeatMap("12/22/2016"));
-        heatMaps.add(new HeatMap("12/22/2016"));
+        heatMaps.add(new HeatMap("2/24/2017, 3:39PM"));
+        heatMaps.add(new HeatMap("1/1/2017, 9:09AM"));
+        heatMaps.add(new HeatMap("12/22/2016, 4:20PM"));
+       // heatMaps.add(new HeatMap("12/22/2016"));
+       // heatMaps.add(new HeatMap("12/22/2016"));
+       // heatMaps.add(new HeatMap("12/22/2016"));
+        //heatMaps.add(new HeatMap("12/22/2016"));
+        //heatMaps.add(new HeatMap("12/22/2016"));
 
 
         adapter = new LoadAdapter(getApplicationContext(), heatMaps);

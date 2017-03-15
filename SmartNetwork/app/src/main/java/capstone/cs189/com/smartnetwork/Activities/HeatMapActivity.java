@@ -1,8 +1,10 @@
 package capstone.cs189.com.smartnetwork.Activities;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -12,6 +14,7 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
@@ -19,6 +22,7 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -126,6 +130,13 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
     private ProgressDialog testingDialog;
 
+    String ip;
+    String bad_test_value;
+    Boolean settingsChanged = false;
+
+
+    double [] numbers = {1.0, 0.9, 0.8, 0.8, 0.5, 0.4, 0.2, 0.2, 0.2};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -161,6 +172,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         mRouterMAC = wifiInfo.getBSSID();
 
+
         // Initialize click listeners for FAB main menu
         fab_general_menu = (FloatingActionMenu) findViewById(R.id.fab_menu);
         fab1 = (com.github.clans.fab.FloatingActionButton) findViewById(R.id.menu_item1);
@@ -189,16 +201,16 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                     isPlacingPin = true;
                 }
 
-                if (mCurrentHeatMap.getRouterPointList().size() < 1) {
-                    Toast.makeText(getApplicationContext(), "ERROR: Need at least one router pin to begin testing!", Toast.LENGTH_SHORT).show();
-                    isPlacingRouter = false;
-                    isPlacingPin = false;
-                }
-                else {
+                //if (mCurrentHeatMap.getRouterPointList().size() < 1) {
+                //    Toast.makeText(getApplicationContext(), "ERROR: Need at least one router pin to begin testing!", Toast.LENGTH_SHORT).show();
+                //    isPlacingRouter = false;
+                //    isPlacingPin = false;
+               // }
+               // else {
                     fab_general_menu.animate().translationY(fab_general_menu.getHeight()).setInterpolator(new LinearInterpolator()).start();
                     fab_test_menu.animate().translationY(fab_general_menu.getHeight()).setInterpolator(new LinearInterpolator()).start();
                     Toast.makeText(getApplicationContext(), "Tap to place pin at test location", Toast.LENGTH_SHORT).show();
-                }
+               // }
             }
         });
         fab3.setOnClickListener(new View.OnClickListener() {
@@ -235,6 +247,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 fab_test_menu.close(true);
                 //mTestPinList.add(new WeightedLatLng(currentPinLocation, 0.5));
                 initIperfHM();
+                //addHeatMap();
                 //addHeatMap3();
                 fab_test_menu.animate().translationY(fab_general_menu.getHeight()).setInterpolator(new LinearInterpolator()).start();
                 fab_general_menu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
@@ -251,6 +264,21 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 fab_general_menu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == 1) {
+            if(resultCode == Activity.RESULT_OK){
+                ip =data.getStringExtra("ip");
+                bad_test_value = data.getStringExtra("bad_test");
+                settingsChanged = true;
+            }
+            if (resultCode == Activity.RESULT_CANCELED) {
+                //Write your code if there's no result
+            }
+        }
     }
 
     @Override
@@ -277,6 +305,8 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
             case R.id.action_settings:
                 // seleced the other options drop down menu
+                Intent intent = new Intent(HeatMapActivity.this, HeatMapSettingsActivity.class);
+                startActivityForResult(intent, 1);
                 return true;
 
             case android.R.id.home:
@@ -373,8 +403,12 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         lat = mLocation.getLatitude();
         lon = mLocation.getLongitude();
         Log.d(TAG, "lat :" + mLocation.getLatitude() + " lon: " + mLocation.getLongitude());
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lon), 19.6f));
-       // marker = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title("My location").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_man_location)));
+        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lon), 19.6f));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lon), 20.8f));
+        // marker = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title("My location").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_man_location)));
+
+        addHeatMap();
+
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
@@ -453,24 +487,31 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
     private void addHeatMap() {
         list = new ArrayList<>();
-        list.add(new WeightedLatLng(new LatLng(34.414742005466145, -119.85553208738565), 0.3));
-        list.add(new WeightedLatLng(new LatLng(34.414742005466145, -119.8556376993656), 0.2));
-        list.add(new WeightedLatLng(new LatLng(34.41466511282376, -119.85563702881335), 0.8));
-        list.add(new WeightedLatLng(new LatLng(34.41464215565424, -119.85556226223709), 0.9));
-        list.add(new WeightedLatLng(new LatLng(34.41470106982359, -119.85552404075861), 0.8));
-        list.add(new WeightedLatLng(new LatLng(34.414693878424856, -119.85558740794657), 0.5));
-        list.add(new WeightedLatLng(new LatLng(34.41473564384734, -119.85557265579702), 0.2));
-        list.add(new WeightedLatLng(new LatLng(34.414703835746025, -119.85563535243273), 0.4));
-        list.add(new WeightedLatLng(new LatLng(34.41464796409531, -119.85560383647679), 0.7));
-        list.add(new WeightedLatLng(new LatLng(34.414672580817296, -119.85554683953524), 0.8));
-        list.add(new WeightedLatLng(new LatLng(34.41465653845998, -119.85555287450552), 0.8));
-        list.add(new WeightedLatLng(new LatLng(34.414737579992234, -119.85561087727548), 0.2));
-        list.add(new WeightedLatLng(new LatLng(34.41471766535677, -119.8556024953723), 0.3));
-        list.add(new WeightedLatLng(new LatLng(34.414709920775024, -119.85555790364742), 0.5));
+        list.add(new WeightedLatLng(new LatLng(34.409400564638496, -119.86459124833344), 1.0));
+        list.add(new WeightedLatLng(new LatLng(34.409395585662374, -119.86453995108603), 0.8));
+        list.add(new WeightedLatLng(new LatLng(34.40935851994197, -119.86458420753479), 0.7));
+        list.add(new WeightedLatLng(new LatLng(34.40931758166454, -119.86458085477352), 0.7));
+        list.add(new WeightedLatLng(new LatLng(34.40929849556889, -119.86454866826534), 0.8));
+        list.add(new WeightedLatLng(new LatLng(34.40934551927497, -119.86453525722028), 0.7));
+        //list.add(new WeightedLatLng(new LatLng(34.41473564384734, -119.85557265579702), 0.2));
+        //list.add(new WeightedLatLng(new LatLng(34.414703835746025, -119.85563535243273), 0.4));
+        //list.add(new WeightedLatLng(new LatLng(34.41464796409531, -119.85560383647679), 0.7));
+        //list.add(new WeightedLatLng(new LatLng(34.414672580817296, -119.85554683953524), 0.8));
+        //list.add(new WeightedLatLng(new LatLng(34.41465653845998, -119.85555287450552), 0.8));
+        //list.add(new WeightedLatLng(new LatLng(34.414737579992234, -119.85561087727548), 0.2));
+        //list.add(new WeightedLatLng(new LatLng(34.41471766535677, -119.8556024953723), 0.3));
+        //list.add(new WeightedLatLng(new LatLng(34.414709920775024, -119.85555790364742), 0.5));
 
-        provider = new HeatmapTileProvider.Builder().weightedData(list).radius(50).opacity(0.5).build();
-        provider.setRadius(30);
+        int[]colors = { Color.rgb(255, 0, 0), Color.rgb(102,255,0)};
+        float[] startPoints = { 0.2f, 1f};
+        Gradient gradient = new Gradient(colors, startPoints);
+
+
+
+        provider = new HeatmapTileProvider.Builder().weightedData(list).radius(50).opacity(0.5).gradient(gradient).build();
+        provider.setRadius(100);
         overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
+
     }
 
     private class SaveHeatMapAsync extends AsyncTask<String, String, String> {
@@ -684,9 +725,13 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         // get the device's ip address for use in iperf command
         if (wifiInfo != null) {
             //This should return the right IP address if DHCP is enabled
-            ipAddress = android.text.format.Formatter.formatIpAddress(wifiManager.getDhcpInfo().serverAddress);
-            ipAddress = "192.168.0.2";
+            ipAddress = android.text.format.Formatter.formatIpAddress(wifiManager.getDhcpInfo().gateway);
+            //ipAddress = "192.168.0.2";
             Log.d("INIT_IPERF", "This is your IP: " + ipAddress);
+            if (settingsChanged) {
+                ipAddress = ip;
+                Log.d("INIT_IPERF", "Settings changed! This is your new ip: " + ipAddress);
+            }
         }
         else {
             Toast.makeText(getApplicationContext(), "Test failed! Verify your device is connected to wifi and try again", Toast.LENGTH_SHORT).show();
@@ -852,7 +897,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 //Toast.makeText(getApplicationContext(), "test has finished", Toast.LENGTH_SHORT).show();
             }
             fancyShadingAlgorithm();
-            buildHeatmapPoint();
+          //  buildHeatmapPoint();
         }
 
 
@@ -873,22 +918,22 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 mCurrentTestPoint.setIntensity(0.8);
             }
             else if (test_rssi + 15 >= base_rssi) {
-                mCurrentTestPoint.setIntensity(0.6);
+                mCurrentTestPoint.setIntensity(0.7);
             }
             else if (test_rssi + 20 >= base_rssi) {
-                mCurrentTestPoint.setIntensity(0.4);
+                mCurrentTestPoint.setIntensity(0.6);
             }
             else if (test_rssi + 25 >= base_rssi) {
-                mCurrentTestPoint.setIntensity(0.3);
+                mCurrentTestPoint.setIntensity(0.5);
             }
             else if (test_rssi + 30 >= base_rssi) {
-                mCurrentTestPoint.setIntensity(0.2);
+                mCurrentTestPoint.setIntensity(0.4);
             }
             else if (test_rssi + 35 >= base_rssi) {
-                mCurrentTestPoint.setIntensity(0.2);
+                mCurrentTestPoint.setIntensity(0.3);
             }
             else if (test_rssi + 40 >= base_rssi) {
-                mCurrentTestPoint.setIntensity(0.1);
+                mCurrentTestPoint.setIntensity(0.2);
             }
             else if (test_rssi + 45 >= base_rssi) {
                 mCurrentTestPoint.setIntensity(0.0);
@@ -913,6 +958,37 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             provider = new HeatmapTileProvider.Builder().weightedData(testList).radius(50).opacity(0.5).gradient(gradient).build();
             provider.setRadius(100);
             overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
+
+            int rssi_limit = -50;
+
+            if (settingsChanged) {
+                rssi_limit = Integer.parseInt(bad_test_value);
+                Log.d("HEAT_MAP_ALGORITHM", "rssi limit has been changed from default! It is now: " + rssi_limit);
+            }
+
+            if (test_rssi < -rssi_limit) {
+                final AlertDialog alertDialog = new AlertDialog.Builder(HeatMapActivity.this).create();
+                alertDialog.setTitle("Attention");
+                alertDialog.setIcon(R.mipmap.ic_warning_black_24dp);
+                alertDialog.setMessage("Your wifi signal at this spot is poor! You should think about adding an extender near this location.");
+                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Ok, sounds good", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //alertDialog.dismiss();
+                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.smartrg.com/we65ac"));
+                        startActivity(browserIntent);
+                    }
+                });
+                alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "No thanks", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        alertDialog.dismiss();
+                    }
+                });
+                alertDialog.show();
+            }
+
+
         }
 
         public void buildHeatmapPoint() {
