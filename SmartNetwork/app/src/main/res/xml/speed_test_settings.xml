@@ -5,7 +5,7 @@
         android:key="test_category">
 
         <ListPreference
-            android:key="sync_interval"
+            android:key="duration"
             android:title="Test duration"
             android:summary="Select the length of each test"
             android:defaultValue="10"
@@ -19,7 +19,7 @@
             android:defaultValue="true"/>
 
         <EditTextPreference
-            android:key="manual_ip"
+            android:key="ip"
             android:title="Set IP manually"
             android:summary="Enter your router's IP"
             android:dialogTitle="Router IP"

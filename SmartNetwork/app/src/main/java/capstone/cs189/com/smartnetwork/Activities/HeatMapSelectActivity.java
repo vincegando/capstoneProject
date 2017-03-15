@@ -1,6 +1,5 @@
 package capstone.cs189.com.smartnetwork.Activities;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
@@ -19,7 +18,6 @@ import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -30,6 +28,7 @@ import java.net.URL;
 import capstone.cs189.com.smartnetwork.R;
 
 public class HeatMapSelectActivity extends AppCompatActivity {
+
     private JSONObject heatmap;
     private String acct_num;
     private JSONObject heatmap_and_points;
@@ -48,9 +47,6 @@ public class HeatMapSelectActivity extends AppCompatActivity {
 
         TextView button_new = (TextView)findViewById(R.id.button_create_new);
         TextView button_load = (TextView)findViewById(R.id.button_load);
-
-        new HeatmapSelectAsync().execute(""); //for testing get request
-
         button_new.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -61,13 +57,14 @@ public class HeatMapSelectActivity extends AppCompatActivity {
         button_load.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(HeatMapSelectActivity.this, HeatMapActivity.class);
+                Intent intent = new Intent(HeatMapSelectActivity.this, HeatMapLoadActivity.class);
                 startActivity(intent);
             }
         });
 
-    }
 
+
+    }
 
     private class HeatmapSelectAsync extends AsyncTask<String, String, String> {
         @Override
@@ -138,7 +135,7 @@ public class HeatMapSelectActivity extends AppCompatActivity {
                     result.append(line);
                 }
                 int HttpResult=con.getResponseCode();
-                if (HttpResult==HttpURLConnection.HTTP_OK){
+                if (HttpResult== HttpURLConnection.HTTP_OK){
                     Log.d("HTTP", "HTTP_OK");
                 }else{
                     Log.d("HTTP", "Bad response: " + HttpResult);
@@ -161,4 +158,6 @@ public class HeatMapSelectActivity extends AppCompatActivity {
             }
         }
     }
+
+
 }

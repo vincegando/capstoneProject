@@ -60,9 +60,7 @@
             android:name=".Activities.HeatMapActivity"
             android:label=""
             android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="capstone.cs189.com.smartnetwork.Activities.MainActivity" />
+
         </activity>
         <activity
             android:name=".Activities.SpeedTestActivity"
@@ -93,6 +91,24 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="capstone.cs189.com.smartnetwork.Activities.SpeedTestActivity" />
+        </activity>
+        <activity
+            android:name=".Activities.HeatMapLoadActivity"
+            android:label=""
+            android:parentActivityName=".Activities.HeatMapSelectActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="capstone.cs189.com.smartnetwork.Activities.HeatMapSelectActivity" />
+        </activity>
+        <activity
+            android:name=".Activities.HeatMapSettingsActivity"
+            android:label=""
+            android:parentActivityName=".Activities.HeatMapActivity"
+            android:theme="@style/AppTheme.Preferences">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="capstone.cs189.com.smartnetwork.Activities.HeatMapActivity" />
         </activity>
     </application>
 

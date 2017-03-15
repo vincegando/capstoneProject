@@ -54,4 +54,16 @@
         android:clickable="true"
         />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:id="@+id/test_rssi"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/button_start"
+        android:textSize="17sp"
+        android:textColor="@color/colorWhite"
+        android:layout_marginTop="20dp"
+        />
+
 </RelativeLayout>
